@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syria Cash Wheel</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 8px solid #334155;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ef4444;
+            z-index: 10;
+        }
+        button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #1e293b, #334155);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        button:disabled { background: #1e293b; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="300" height="300"></canvas>
+    </div>
+    
+    <button id="spinBtn">تدوير العجلة</button>
+    <h2 id="result"></h2>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const resultTxt = document.getElementById('result');
+
+        const prizes = [
+            { text: "حظ أوفر", color: "#8b5cf6" }, // بنفسجي
+            { text: "5 ليرات", color: "#22c55e" }, // أخضر
+            { text: "10 ليرات", color: "#3b82f6" }, // أزرق
+            { text: "50 ليرة", color: "#eab308" }, // أصفر
+            { text: "100 ليرة", color: "#8b5cf6" }, 
+            { text: "25$ يانصيب", color: "#22c55e" },
+            { text: "50$ يانصيب", color: "#3b82f6" },
+            { text: "حظ أوفر", color: "#eab308" }
+        ];
+
+        const numPrizes = prizes.length;
+        const arc = (2 * Math.PI) / numPrizes;
+        let angle = 0;
+
+        function drawWheel() {
+            prizes.forEach((prize, i) => {
+                ctx.beginPath();
+                ctx.fillStyle = prize.color;
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 150, i * arc, (i + 1) * arc);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(i * arc + arc / 2);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px Arial";
+                ctx.fillText(prize.text, 60, 5);
+                ctx.restore();
+            });
+        }
+
+        drawWheel();
+
+        spinBtn.onclick = () => {
+            spinBtn.disabled = true;
+            const spinAngle = Math.random() * 360 + 1440; // 4 دورات كحد أدنى
+            let currentRotation = 0;
+            
+            const animation = setInterval(() => {
+                currentRotation += 15; 
+                canvas.style.transform = `rotate(${currentRotation - 90}deg)`;
+                
+                if (currentRotation >= spinAngle) {
+                    clearInterval(animation);
+                    const finalAngle = (currentRotation % 360);
+                    const prizeIndex = Math.floor((360 - (finalAngle)) / (360 / numPrizes)) % numPrizes;
+                    resultTxt.innerText = "🎊 " + prizes[prizeIndex].text;
+                }
+            }, 20);
+        };
+    </script>
+</body>
+</html>
