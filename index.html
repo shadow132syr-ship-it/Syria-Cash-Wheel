@@ -3,164 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Syria Cash Wheel</title>
+    <title>Syria Cash PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg: #0f172a;
+            --gold: #f1c40f;
+            --accent: #ef4444;
+        }
+
         body {
-            background-color: #0f172a;
+            background-color: var(--bg);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             color: white;
             overflow: hidden;
         }
 
-        .wheel-container {
+        /* حاوية العجلة الاحترافية */
+        .wheel-box {
             position: relative;
-            width: 340px;
-            height: 340px;
+            width: 350px;
+            height: 350px;
             border: 10px solid #1e293b;
             border-radius: 50%;
-            box-shadow: 0 0 50px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.1);
+            box-shadow: 0 0 50px rgba(0,0,0,0.7);
         }
 
-        /* المؤشر الواقعي */
         .pin {
             position: absolute;
             top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 18px solid transparent;
-            border-right: 18px solid transparent;
-            border-top: 35px solid #ef4444;
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--accent);
             z-index: 100;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
         }
 
         canvas {
             border-radius: 50%;
-            transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+            transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+
+        .controls {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        #result {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: bold;
+            margin-bottom: 20px;
+            height: 30px;
         }
 
         .spin-btn {
-            margin-top: 40px;
-            padding: 16px 50px;
+            padding: 15px 60px;
             background: linear-gradient(135deg, #6366f1, #a855f7);
             border: none;
             border-radius: 50px;
             color: white;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
-            transition: all 0.2s;
-            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
         }
 
-        .spin-btn:active {
-            transform: scale(0.92);
-        }
-
-        .result-text {
-            margin-top: 25px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            height: 40px;
-            color: #f1c40f;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
+        .spin-btn:disabled { background: #475569; }
     </style>
 </head>
 <body>
 
-    <div class="wheel-container">
+    <div class="wheel-box">
         <div class="pin"></div>
-        <canvas id="wheel" width="340" height="340"></canvas>
+        <canvas id="wheel" width="350" height="350"></canvas>
     </div>
 
-    <div class="result-text" id="result"></div>
-    <button class="spin-btn" id="spinBtn">تدوير العجلة</button>
+    <div class="controls">
+        <div id="result">اختبر حظك اليوم!</div>
+        <button class="spin-btn" id="spinBtn">تدوير العجلة</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
-        const resultDiv = document.getElementById('result');
         const spinBtn = document.getElementById('spinBtn');
+        const resultDiv = document.getElementById('result');
         const tg = window.Telegram.WebApp;
 
         tg.expand();
 
-        // قائمة الجوائز كما طلبت بضبط
+        // الجوائز بدقة عالية
         const prizes = [
-            { text: "50 ليرة", val: 50, color: "#3b82f6" },
-            { text: "10 ليرات", val: 10, color: "#10b981" },
-            { text: "5 ليرات", val: 5, color: "#8b5cf6" },
-            { text: "الحظ الأوفر", val: 0, color: "#f59e0b" },
-            { text: "15 ليرة", val: 15, color: "#3b82f6" },
-            { text: "20 ليرة", val: 20, color: "#10b981" },
-            { text: "25 ليرة", val: 25, color: "#8b5cf6" },
-            { text: "30 ليرة", val: 30, color: "#f59e0b" },
-            { text: "قسيمة 25$", val: 1000, color: "#ec4899" },
-            { text: "قسيمة 50$", val: 2000, color: "#ef4444" },
-            { text: "125 ليرة", val: 125, color: "#06b6d4" }
+            { text: "50 ليرة", val: 50, color: "#3498db" },
+            { text: "10 ليرات", val: 10, color: "#2ecc71" },
+            { text: "5 ليرات", val: 5, color: "#9b59b6" }, // هذا هو الهدف (Index 2)
+            { text: "الحظ الأوفر", val: 0, color: "#e67e22" },
+            { text: "15 ليرة", val: 15, color: "#34495e" },
+            { text: "20 ليرة", val: 20, color: "#16a085" },
+            { text: "25 ليرة", val: 25, color: "#2980b9" },
+            { text: "30 ليرة", val: 30, color: "#8e44ad" },
+            { text: "قسيمة 25$", val: 1000, color: "#d35400" },
+            { text: "قسيمة 50$", val: 2000, color: "#c0392b" },
+            { text: "125 ليرة", val: 125, color: "#27ae60" }
         ];
 
         const numPrizes = prizes.length;
         const arcSize = (2 * Math.PI) / numPrizes;
         let currentRotation = 0;
 
-        function drawWheel() {
-            prizes.forEach((prize, i) => {
+        function draw() {
+            prizes.forEach((p, i) => {
                 const angle = i * arcSize;
                 ctx.beginPath();
-                ctx.fillStyle = prize.color;
-                ctx.moveTo(170, 170);
-                ctx.arc(170, 170, 170, angle, angle + arcSize);
+                ctx.fillStyle = p.color;
+                ctx.moveTo(175, 175);
+                ctx.arc(175, 175, 175, angle, angle + arcSize);
                 ctx.fill();
-                ctx.stroke();
-
                 ctx.save();
-                ctx.translate(170, 170);
+                ctx.translate(175, 175);
                 ctx.rotate(angle + arcSize / 2);
-                ctx.textAlign = "right";
                 ctx.fillStyle = "white";
-                ctx.font = "bold 16px Arial";
-                ctx.fillText(prize.text, 160, 10);
+                ctx.font = "bold 14px Arial";
+                ctx.fillText(p.text, 165 - ctx.measureText(p.text).width, 5);
                 ctx.restore();
             });
         }
-
-        drawWheel();
+        draw();
 
         spinBtn.addEventListener('click', () => {
             spinBtn.disabled = true;
-            const extraSpins = 5 + Math.random() * 5; 
-            const stopAngle = Math.random() * (2 * Math.PI);
-            currentRotation += (extraSpins * 2 * Math.PI) + stopAngle;
+            resultDiv.innerText = "جاري التدوير...";
 
+            // خوارزمية الحظ 90% للـ 5 ليرات
+            const chance = Math.random() * 100;
+            let targetIndex;
+            if (chance <= 90) {
+                targetIndex = 2; // إجبار التوقف على "5 ليرات"
+            } else {
+                targetIndex = Math.floor(Math.random() * numPrizes); // 10% حظ عشوائي
+            }
+
+            const spins = 10 * 2 * Math.PI;
+            const stopAngle = (numPrizes - targetIndex - 0.5) * arcSize;
+            const totalMove = spins + stopAngle;
+            
+            currentRotation += totalMove;
             canvas.style.transform = `rotate(${currentRotation}rad)`;
 
             setTimeout(() => {
-                const totalRotation = currentRotation % (2 * Math.PI);
-                const winningIndex = Math.floor((numPrizes - (totalRotation / arcSize)) % numPrizes);
-                const winner = prizes[winningIndex];
+                const winner = prizes[targetIndex];
+                resultDiv.innerText = winner.val === 0 ? "حظ أوفر!" : `مبروك! ربحت ${winner.text}`;
 
-                resultDiv.innerText = winner.val === 0 ? "حظ أوفر المرة القادمة!" : `ربحت ${winner.text} 🎊`;
-
-                // إرسال البيانات للبوت
+                // إرسال البيانات وإغلاق النافذة
                 setTimeout(() => {
-                    if (tg.sendData) {
-                        tg.sendData(winner.val.toString());
-                    }
+                    tg.sendData(winner.val.toString());
+                    tg.close();
                 }, 2000);
-
-            }, 5000);
+            }, 6000);
         });
     </script>
 </body>
