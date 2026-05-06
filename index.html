@@ -1,121 +1,67 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Syria Cash PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syria Cash Wheel</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0f172a; --gold: #f1c40f; --accent: #ef4444; }
-        body { background-color: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; }
-        .wheel-box { position: relative; width: 350px; height: 350px; border: 8px solid #1e293b; border-radius: 50%; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-        .pin { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 35px solid var(--accent); z-index: 100; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); }
+        body { background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .wheel-container { position: relative; width: 320px; height: 320px; border: 5px solid #1e293b; border-radius: 50%; }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ef4444; z-index: 10; }
         canvas { border-radius: 50%; transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1); }
-        .controls { margin-top: 30px; text-align: center; }
-        #result { font-size: 1.4rem; color: var(--gold); font-weight: bold; margin-bottom: 15px; min-height: 35px; }
-        .spin-btn { padding: 12px 50px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 50px; color: white; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); }
-        .spin-btn:disabled { background: #475569; opacity: 0.6; }
+        .btn { margin-top: 30px; padding: 12px 40px; background: #6366f1; border: none; border-radius: 25px; color: white; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
-
-    <div class="wheel-box">
-        <div class="pin"></div>
-        <canvas id="wheel" width="350" height="350"></canvas>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="320" height="320"></canvas>
     </div>
-
-    <div class="controls">
-        <div id="result">اختبر حظك واربح!</div>
-        <button class="spin-btn" id="spinBtn">تدوير العجلة</button>
-    </div>
+    <div id="status" style="margin-top: 20px; color: #f1c40f;"></div>
+    <button class="btn" id="spinBtn">تدوير العجلة</button>
 
     <script>
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-        const resultDiv = document.getElementById('result');
         const tg = window.Telegram.WebApp;
-        if (tg) tg.expand();
-
-        // الجوائز مع ضبط الألوان والترتيب
         const prizes = [
-            { text: "50 ليرة", val: 50, color: "#3498db" },
-            { text: "10 ليرات", val: 10, color: "#2ecc71" },
-            { text: "5 ليرات", val: 5, color: "#9b59b6" },
-            { text: "الحظ الأوفر", val: 0, color: "#e67e22" },
-            { text: "15 ليرة", val: 15, color: "#34495e" },
-            { text: "20 ليرة", val: 20, color: "#16a085" },
-            { text: "25 ليرة", val: 25, color: "#2980b9" },
-            { text: "30 ليرة", val: 30, color: "#8e44ad" },
-            { text: "قسيمة 25$", val: 1000, color: "#d35400" },
-            { text: "قسيمة 50$", val: 2000, color: "#c0392b" },
-            { text: "125 ليرة", val: 125, color: "#27ae60" }
+            {t:"50 ليرة", v:50, c:"#3498db"}, {t:"10 ليرات", v:10, c:"#2ecc71"},
+            {t:"5 ليرات", v:5, c:"#9b59b6"}, {t:"حظ أوفر", v:0, c:"#e67e22"},
+            {t:"15 ليرة", v:15, c:"#34495e"}, {t:"20 ليرة", v:20, c:"#16a085"},
+            {t:"25 ليرة", v:25, c:"#2980b9"}, {t:"30 ليرة", v:30, c:"#8e44ad"},
+            {t:"قسيمة 25$", v:1000, c:"#d35400"}, {t:"قسيمة 50$", v:2000, c:"#c0392b"},
+            {t:"125 ليرة", v:125, c:"#27ae60"}
         ];
-
-        const numPrizes = prizes.length;
-        const arcSize = (2 * Math.PI) / numPrizes;
-        let currentRotation = 0;
+        const arc = (2 * Math.PI) / prizes.length;
+        let rotation = 0;
 
         function draw() {
-            ctx.clearRect(0, 0, 350, 350);
             prizes.forEach((p, i) => {
-                const angle = i * arcSize;
-                // رسم القطاع مع إطار خارجي
-                ctx.beginPath();
-                ctx.fillStyle = p.color;
-                ctx.moveTo(175, 175);
-                ctx.arc(175, 175, 175, angle, angle + arcSize);
-                ctx.fill();
-                ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // رسم النص مع إطار (Stroke) للوضوح التام
-                ctx.save();
-                ctx.translate(175, 175);
-                ctx.rotate(angle + arcSize / 2);
-                ctx.textAlign = "right";
-                ctx.font = "bold 15px Arial";
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 3;
-                ctx.strokeText(p.text, 160, 5); // الإطار الأسود للنص
-                ctx.fillStyle = "white";
-                ctx.fillText(p.text, 160, 5);   // النص الأبيض
-                ctx.restore();
+                ctx.beginPath(); ctx.fillStyle = p.c; ctx.moveTo(160, 160);
+                ctx.arc(160, 160, 160, i*arc, (i+1)*arc); ctx.fill();
+                ctx.save(); ctx.translate(160, 160); ctx.rotate(i*arc + arc/2);
+                ctx.textAlign = "right"; ctx.font = "bold 14px Arial";
+                ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeText(p.t, 150, 5);
+                ctx.fillStyle = "white"; ctx.fillText(p.t, 150, 5); ctx.restore();
             });
         }
         draw();
 
-        spinBtn.addEventListener('click', () => {
-            spinBtn.disabled = true;
-            resultDiv.innerText = "جاري التدوير...";
-
-            // خوارزمية الحظ 90% (اختيار الـ 5 ليرات)
+        document.getElementById('spinBtn').onclick = function() {
+            this.disabled = true;
             const chance = Math.random() * 100;
-            let targetIndex = (chance <= 90) ? 2 : Math.floor(Math.random() * numPrizes);
-
-            const spins = 12 * 2 * Math.PI; // دوران سريع وواقعي
-            // حل مشكلة الحول: التوقف في منتصف القطاع بضبط
-            const stopAngle = (numPrizes - targetIndex - 0.5) * arcSize;
-            const totalMove = spins + stopAngle;
-            
-            currentRotation += totalMove;
-            canvas.style.transform = `rotate(${currentRotation}rad)`;
+            const target = (chance <= 90) ? 2 : Math.floor(Math.random() * prizes.length);
+            const extraSpins = 10 * 2 * Math.PI;
+            const stopAngle = (prizes.length - target - 0.5) * arc;
+            rotation += extraSpins + stopAngle;
+            canvas.style.transform = `rotate(${rotation}rad)`;
 
             setTimeout(() => {
-                const winner = prizes[targetIndex];
-                resultDiv.innerText = winner.val === 0 ? "حظ أوفر المرة القادمة!" : `مبروك! ربحت ${winner.text}`;
-
-                // الإغلاق ورسالة الوقت المحدثة
-                setTimeout(() => {
-                    if (tg) {
-                        tg.sendData(winner.val.toString());
-                        resultDiv.innerText = "الدورة التالية بعد 23 ساعة";
-                        setTimeout(() => tg.close(), 1500);
-                    }
-                }, 2000);
+                document.getElementById('status').innerText = "مبروك! ربحت " + prizes[target].t;
+                setTimeout(() => { tg.sendData(prizes[target].v.toString()); tg.close(); }, 2000);
             }, 6000);
-        });
+        };
     </script>
 </body>
 </html>
