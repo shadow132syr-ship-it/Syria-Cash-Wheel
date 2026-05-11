@@ -3,142 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syria Cash - Throne V2</title>
+    <title>Syria Cash - Royal Wheel</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            background: #0d1117; color: white; font-family: sans-serif; 
+            background: #000; color: white; font-family: sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; margin: 0;
         }
-
-        /* حاوية العجلة - محاكاة لإطار ثرون */
-        .throne-frame {
-            position: relative; width: 330px; height: 330px;
-            border: 10px solid #1e293b; border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 20px #000;
+        .wheel-container { position: relative; width: 350px; height: 350px; }
+        canvas { 
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 10px solid #1a1a1a; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
         }
-
-        canvas { width: 100%; height: 100%; border-radius: 50%; transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1); }
-
-        /* المؤشر العلوي (مثل ثرون بالميلي) */
-        .throne-pointer {
-            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; 
-            border-left: 14px solid transparent; border-right: 14px solid transparent; 
-            border-top: 25px solid #94a3b8; z-index: 10;
+        .pointer {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 20px solid transparent; 
+            border-right: 20px solid transparent; border-top: 35px solid #fff; z-index: 10;
         }
-
-        /* المركز المتوهج */
-        .throne-center {
+        .center {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50px; height: 50px; background: #e11d48; border-radius: 50%; 
-            border: 4px solid #0f172a; z-index: 5; box-shadow: 0 0 15px #e11d48;
+            width: 60px; height: 60px; background: #ff0000; border-radius: 50%; 
+            border: 4px solid #1a1a1a; z-index: 5;
         }
-
         .spin-btn {
-            margin-top: 50px; padding: 15px 60px; font-size: 18px; 
-            background: #111827; color: white; border: 1px solid #334155;
-            border-radius: 30px; cursor: pointer; transition: 0.3s;
+            margin-top: 40px; padding: 15px 50px; font-size: 20px; font-weight: bold;
+            background: linear-gradient(180deg, #222, #000); color: #fff;
+            border: 2px solid #444; border-radius: 50px; cursor: pointer;
         }
-        .spin-btn:disabled { opacity: 0.3; }
-        #timer { margin-top: 15px; color: #64748b; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="throne-frame">
-        <div class="throne-pointer"></div>
-        <div class="throne-center"></div>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="center"></div>
         <canvas id="wheel" width="500" height="500"></canvas>
     </div>
 
     <button id="spin-button" class="spin-btn">لفّ العجلة الملكية 👑</button>
-    <p id="timer"></p>
 
 <script>
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const btn = document.getElementById('spin-button');
-    const timerDisplay = document.getElementById('timer');
 
-    // توزيع الجوائز: 8 خانات (7 فوز بـ 5 ليرات، 1 حظ أوفر) لتحقيق نسبة الـ 80% تقريباً برمجياً
+    // الجوائز كما في صورتك تماماً (للعرض فقط)
     const segments = [
-        { label: "5 ليرات", color: "#facc15", win: true },
-        { label: "5 ليرات", color: "#ef4444", win: true },
-        { label: "5 ليرات", color: "#22c55e", win: true },
-        { label: "حظ أوفر", color: "#475569", win: false },
-        { label: "5 ليرات", color: "#3b82f6", win: true },
-        { label: "5 ليرات", color: "#a855f7", win: true },
-        { label: "5 ليرات", color: "#f97316", win: true },
-        { label: "5 ليرات", color: "#06b6d4", win: true }
+        { label: "100 ليرة", color: "#b91c1c" }, // أحمر
+        { label: "20 ليرة", color: "#ea580c" },  // برتقالي
+        { label: "1 ليرة", color: "#16a34a" },   // أخضر
+        { label: "حظ أوفر", color: "#475569" },  // رمادي
+        { label: "50 ليرة", color: "#9333ea" },  // بنفسجي
+        { label: "10 ليرات", color: "#ca8a04" }, // ذهبي
+        { label: "5 ليرات", color: "#0284c7" },  // أزرق سماوي
+        { label: "7 ليرات", color: "#7c3aed" },  // أرجواني
+        { label: "12 ليرة", color: "#2563eb" }   // أزرق
     ];
 
-    const numSegments = segments.length;
-    const anglePerSeg = (2 * Math.PI) / numSegments;
-
-    function drawThroneWheel() {
+    function drawWheel() {
+        const angle = (2 * Math.PI) / segments.length;
         segments.forEach((seg, i) => {
-            const angle = i * anglePerSeg;
-            // رسم الفواصل والخطوط بالميلي
             ctx.beginPath(); ctx.fillStyle = seg.color; ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 250, angle, angle + anglePerSeg); ctx.fill();
-            ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 4; ctx.stroke();
-            
-            ctx.save(); ctx.translate(250, 250); ctx.rotate(angle + anglePerSeg/2);
-            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 24px Arial";
+            ctx.arc(250, 250, 250, i * angle, (i + 1) * angle); ctx.fill();
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(i * angle + angle / 2);
+            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 22px Arial";
             ctx.fillText(seg.label, 230, 10); ctx.restore();
         });
     }
-    drawThroneWheel();
-
-    function check24HourLock() {
-        const lastSpin = localStorage.getItem('syria_cash_last_spin');
-        if (lastSpin) {
-            const wait = 24 * 60 * 60 * 1000 - (Date.now() - lastSpin);
-            if (wait > 0) {
-                btn.disabled = true;
-                const hours = Math.floor(wait / (1000 * 60 * 60));
-                timerDisplay.innerText = `التدويرة التالية خلال ${hours} ساعة`;
-                return false;
-            }
-        }
-        return true;
-    }
-    check24HourLock();
+    drawWheel();
 
     let rotation = 0;
     btn.onclick = () => {
-        if (!check24HourLock()) return;
+        btn.disabled = true;
 
-        // تطبيق نسبة 80% فوز و 20% حظ أوفر برمجياً
+        // --- البرمجة الخفية للنسب (الخوارزمية) ---
         const randomLuck = Math.random() * 100;
         let targetIndex;
+
         if (randomLuck <= 80) {
-            const winIndices = [0, 1, 2, 4, 5, 6, 7];
-            targetIndex = winIndices[Math.floor(Math.random() * winIndices.length)];
+            // نسبة 80%: الوقوف على "5 ليرات" (التي تقع في الفئة رقم 6 في المصفوفة)
+            targetIndex = 6; 
         } else {
-            targetIndex = 3; // خانة حظ أوفر
+            // نسبة 20%: الوقوف على "حظ أوفر" (التي تقع في الفئة رقم 3 في المصفوفة)
+            targetIndex = 3;
         }
 
-        const extraDegree = (360 / numSegments) * targetIndex;
-        rotation += 3600 + (360 - extraDegree);
+        // حساب زاوية التوقف بدقة
+        const segmentAngle = 360 / segments.length;
+        const targetAngle = (360 - (targetIndex * segmentAngle) - (segmentAngle / 2) + 270) % 360;
+        
+        rotation += 3600 + targetAngle - (rotation % 360);
         canvas.style.transform = `rotate(${rotation}deg)`;
 
         setTimeout(() => {
-            localStorage.setItem('syria_cash_last_spin', Date.now());
             const result = segments[targetIndex];
             
-            // إرسال البيانات فوراً لإضافة الرصيد في البوت
+            // إرسال النتيجة للبوت (دائماً ستكون 5 ليرات أو حظ أوفر برمجياً)
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.sendData(JSON.stringify({
-                    amount: result.win ? 5 : 0,
-                    status: result.label
+                    prize: result.label,
+                    value: targetIndex === 6 ? 5 : 0
                 }));
             }
-            alert(result.win ? "مبروك! تم إضافة 5 ليرات لرصيدك" : "حظ أوفر!");
-            location.reload();
-        }, 6500);
+            alert(targetIndex === 6 ? "مبروك! ربحت 5 ليرات" : "حظ أوفر في المرة القادمة");
+            btn.disabled = false;
+        }, 6000);
     };
 </script>
 </body>
