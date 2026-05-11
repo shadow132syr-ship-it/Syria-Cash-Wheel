@@ -3,106 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syria Cash - Throne V2</title>
+    <title>Syria Cash - Throne Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* الخلفية الكونية */
         body { 
-            background: radial-gradient(circle at center, #0f172a 0%, #000000 100%); 
-            color: white; font-family: sans-serif; 
+            background: radial-gradient(circle at center, #1e293b 0%, #000000 100%); 
+            color: white; font-family: 'Segoe UI', sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; margin: 0; overflow: hidden;
         }
 
-        .throne-frame {
-            position: relative; width: 330px; height: 330px;
-            border: 10px solid #1e293b; border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9); background: #000;
+        /* إطار العجلة الملكي */
+        .wheel-outer {
+            position: relative; width: 340px; height: 340px;
+            border: 12px solid #334155; border-radius: 50%;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px #000;
+            background: #0f172a; padding: 5px;
         }
 
-        .wheel-spin-area {
+        #wheel-canvas {
             width: 100%; height: 100%; border-radius: 50%;
-            transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
+            transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);
         }
 
-        canvas { width: 100%; height: 100%; transform: rotate(-90deg); }
-
-        /* الكرة الحمراء المتوهجة - طبق الأصل عن ثرون */
-        .red-center {
+        /* الزر الأحمر المركزي */
+        .center-button {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 55px; height: 55px;
-            background: radial-gradient(circle at 30% 30%, #ff4b2b 0%, #8b0000 100%);
-            border: 3px solid #000; border-radius: 50%; z-index: 10;
-            box-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at 30% 30%, #ff4b2b, #8b0000);
+            border: 4px solid #1e293b; border-radius: 50%; z-index: 10;
+            box-shadow: 0 0 25px rgba(255, 75, 43, 0.7);
         }
 
-        .silver-pointer {
-            position: absolute; top: -15px; left: 50%;
+        /* المؤشر العلوي */
+        .pointer {
+            position: absolute; top: -10px; left: 50%;
             transform: translateX(-50%); width: 0; height: 0;
-            border-left: 18px solid transparent; border-right: 18px solid transparent;
-            border-top: 32px solid #cbd5e1; z-index: 20;
+            border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 25px solid #f1c40f; z-index: 20;
         }
 
-        .action-btn {
-            margin-top: 40px; background: rgba(15, 23, 42, 0.8);
-            color: #fff; padding: 12px 45px; border-radius: 30px;
-            border: 2px solid #334155; font-size: 18px; font-weight: bold; cursor: pointer;
+        .spin-btn {
+            margin-top: 50px; background: linear-gradient(45deg, #1e293b, #334155);
+            color: #fff; padding: 15px 50px; border-radius: 50px;
+            border: 1px solid #f1c40f; font-size: 20px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: 0.2s;
         }
-        
-        .win-display { margin-top: 20px; color: #f1c40f; font-weight: bold; font-size: 20px; height: 25px; }
+
+        .spin-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <div class="throne-frame">
-        <div class="silver-pointer"></div>
-        <div class="red-center"></div>
-        <div class="wheel-spin-area" id="wheel">
-            <canvas id="canvas" width="500" height="500"></canvas>
-        </div>
+    <div class="wheel-outer">
+        <div class="pointer"></div>
+        <div class="center-button"></div>
+        <canvas id="wheel-canvas" width="500" height="500"></canvas>
     </div>
 
-    <div class="win-display" id="resultLabel"></div>
-    <button class="action-btn" id="spinBtn">لفّ العجلة الملكية 👑</button>
+    <button class="spin-btn" id="spinTrigger">لفّ العجلة الملكية 👑</button>
 
 <script>
-    const canvas = document.getElementById('canvas');
+    const canvas = document.getElementById('wheel-canvas');
     const ctx = canvas.getContext('2d');
-    const wheel = document.getElementById('wheel');
-    const res = document.getElementById('resultLabel');
+    const spinBtn = document.getElementById('spinTrigger');
     
-    // الأرقام التسعة المحفوظة من ليرة كاش
+    // الأقسام والجوائز (9 أقسام)
     const prizes = ["100 ليرة", "20 ليرة", "1 ليرة", "حظ أوفر", "50 ليرة", "10 ليرات", "5 ليرات", "7 ليرات", "12 ليرة"];
     const colors = ["#b91c1c", "#ea580c", "#16a34a", "#475569", "#7c3aed", "#ca8a04", "#0284c7", "#9333ea", "#2563eb"];
+    
+    const numSegments = prizes.length;
+    const anglePerSegment = (2 * Math.PI) / numSegments;
 
-    function draw() {
-        const arc = 2 * Math.PI / prizes.length;
-        for(let i=0; i<prizes.length; i++) {
-            ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 245, i*arc, (i+1)*arc); ctx.fill();
-            ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 2; ctx.stroke();
-            ctx.save(); ctx.translate(250, 250); ctx.rotate(i*arc + arc/2);
-            ctx.textAlign = "right"; ctx.fillStyle = "white";
-            ctx.font = "bold 22px Arial"; ctx.fillText(prizes[i], 230, 10); ctx.restore();
+    // دالة رسم العجلة المقسمة بوضوح
+    function drawWheel() {
+        ctx.clearRect(0, 0, 500, 500);
+        for (let i = 0; i < numSegments; i++) {
+            const currentAngle = i * anglePerSegment;
+            
+            // رسم القسم
+            ctx.beginPath();
+            ctx.fillStyle = colors[i];
+            ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 240, currentAngle, currentAngle + anglePerSegment);
+            ctx.closePath();
+            ctx.fill();
+            
+            // رسم الحدود السوداء بين الأقسام لتقسيمها بوضوح
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // رسم النصوص
+            ctx.save();
+            ctx.translate(250, 250);
+            ctx.rotate(currentAngle + anglePerSegment / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "white";
+            ctx.font = "bold 24px Arial";
+            ctx.fillText(prizes[i], 220, 10);
+            ctx.restore();
         }
     }
-    draw();
 
-    let rotation = 0;
-    document.getElementById('spinBtn').onclick = function() {
-        this.disabled = true;
-        res.innerText = "⏳ جاري التدوير الملكي...";
-        const spin = Math.floor(Math.random() * 360) + 3600;
-        rotation += spin; wheel.style.transform = `rotate(${rotation}deg)`;
+    drawWheel();
+
+    let currentRotation = 0;
+
+    spinBtn.onclick = () => {
+        spinBtn.disabled = true;
+        // دوران عشوائي لا يقل عن 5 دورات
+        const randomSpin = Math.floor(Math.random() * 360) + 1800; 
+        currentRotation += randomSpin;
         
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
         setTimeout(() => {
-            this.disabled = false;
-            const deg = rotation % 360;
-            const idx = Math.floor((360 - deg) / (360 / prizes.length)) % prizes.length;
-            res.innerText = prizes[idx] === "حظ أوفر" ? "😢 حظ أوفر!" : "🎊 ربحت " + prizes[idx];
-        }, 6000);
+            spinBtn.disabled = false;
+            // حساب النتيجة النهائية
+            const actualDeg = currentRotation % 360;
+            // تعديل الحساب ليتوافق مع اتجاه المؤشر العلوي (270 درجة)
+            const prizeIndex = Math.floor(((360 - (actualDeg % 360)) + 270) % 360 / (360 / numSegments));
+            
+            // إرسال البيانات للبوت وإغلاق الواجهة
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.sendData(prizes[prizeIndex]);
+            }
+        }, 5000);
     };
-    Telegram.WebApp.ready();
+
+    // إعلام تليجرام أن التطبيق جاهز
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
 </script>
 </body>
 </html>
