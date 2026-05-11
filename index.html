@@ -3,51 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوريا كاش - العجلة</title>
+    <title>Syria Cash - Throne Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #1a1c24; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; overflow: hidden; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h2 { color: #ffcc00; margin-bottom: 5px; }
-        .header p { font-size: 14px; color: #aaa; }
+        body { 
+            background: radial-gradient(circle, #1a2a6c, #000000); /* خلفية كونية */
+            color: white; font-family: 'Arial', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            height: 100vh; margin: 0; justify-content: center;
+        }
         
-        .wheel-container { position: relative; width: 320px; height: 320px; margin-top: 20px; }
-        #canvas { width: 100%; height: 100%; transform: rotate(-90deg); border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .arrow { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ffcc00; z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
-        
-        .spin-btn { margin-top: 40px; width: 85%; padding: 18px; font-size: 18px; font-weight: bold; background: linear-gradient(to right, #f1c40f, #e67e22); border: none; border-radius: 35px; color: #000; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4); }
-        .spin-btn:disabled { background: #444; color: #888; box-shadow: none; }
-        
-        /* تأثيرات إضافية لتشبه التطبيق */
-        .balance-card { background: #252833; padding: 10px 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; }
+        .wheel-outer {
+            position: relative; width: 340px; height: 340px;
+            border: 8px solid #2c3e50; border-radius: 50%;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(108, 92, 231, 0.3);
+            background: #000;
+        }
+
+        .wheel-inner {
+            width: 100%; height: 100%; border-radius: 50%;
+            overflow: hidden; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
+        }
+
+        canvas { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+        .center-node {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55px; height: 55px; 
+            background: radial-gradient(#ff4b2b, #8e0000); /* زر أحمر متوهج مثل الصورة */
+            border-radius: 50%; border: 3px solid #111; z-index: 5;
+            box-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
+        }
+
+        .pointer {
+            position: absolute; top: -12px; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0; 
+            border-left: 15px solid transparent; border-right: 15px solid transparent; 
+            border-top: 30px solid #ecf0f1; /* مؤشر فضي */
+            z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+        }
+
+        .info-button {
+            margin-top: 50px; background: #000;
+            padding: 12px 35px; border-radius: 25px;
+            border: 2px solid #333; font-size: 18px; font-weight: bold;
+            color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        .result-msg {
+            margin-top: 20px; font-size: 19px; color: #f1c40f; 
+            font-weight: bold; min-height: 25px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>سوريا كاش</h2>
-        <p>جرب حظك واربح مبالغ فورية</p>
+    <div class="wheel-outer">
+        <div class="pointer"></div>
+        <div class="center-node"></div>
+        <div class="wheel-inner" id="wheel-container">
+            <canvas id="canvas" width="400" height="400"></canvas>
+        </div>
     </div>
 
-    <div class="balance-card">
-        <span>اللفات المتاحة: <b id="spins">1</b></span>
-    </div>
-
-    <div class="wheel-container">
-        <div class="arrow"></div>
-        <canvas id="canvas" width="400" height="400"></canvas>
-    </div>
-
-    <button class="spin-btn" id="spinBtn">🎰 لـفّ العجلة</button>
+    <div class="result-msg" id="resultLabel"></div>
+    <button class="info-button" id="spinBtn">لفّ العجلة الآن 🎰</button>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const spinBtn = document.getElementById('spinBtn');
     
-    // المبالغ والألوان من الصور اللي بعتها
+    // المبالغ من العجلة السابقة (ليرة كاش)
     const prizes = ["100 ليرة", "20 ليرة", "1 ليرة", "حظ أوفر", "50 ليرة", "10 ليرات", "5 ليرات", "7 ليرات", "12 ليرة"];
-    const colors = ["#e74c3c", "#e67e22", "#2ecc71", "#7f8c8d", "#9b59b6", "#f1c40f", "#3498db", "#6c5ce7", "#2980b9"];
+    // ألوان فخمة متناسقة مع ستايل "ثرون"
+    const colors = ["#d35400", "#f39c12", "#27ae60", "#7f8c8d", "#8e44ad", "#f1c40f", "#2980b9", "#16a085", "#3498db"];
     
     const numPrizes = prizes.length;
     const arc = 2 * Math.PI / numPrizes;
@@ -58,20 +90,22 @@
             ctx.fillStyle = colors[i];
             ctx.beginPath();
             ctx.moveTo(200, 200);
-            ctx.arc(200, 200, 190, angle, angle + arc);
+            ctx.arc(200, 200, 195, angle, angle + arc);
             ctx.fill();
-            ctx.strokeStyle = "#1a1c24";
+            
+            // إضافة لمعة خفيفة للأقسام
+            ctx.strokeStyle = "rgba(255,255,255,0.1)";
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // إضافة النص
+            // رسم النص
             ctx.save();
             ctx.translate(200, 200);
             ctx.rotate(angle + arc / 2);
             ctx.textAlign = "right";
             ctx.fillStyle = "white";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(prize, 180, 10);
+            ctx.font = "bold 17px sans-serif";
+            ctx.fillText(prize, 180, 8);
             ctx.restore();
         });
     }
@@ -79,33 +113,32 @@
     drawWheel();
 
     let rotation = 0;
-    spinBtn.onclick = function() {
-        this.disabled = true;
-        const extraDegree = Math.floor(Math.random() * 360) + 3600; // 10 لفات كاملة
+    const wheelContainer = document.getElementById('wheel-container');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultLabel = document.getElementById('resultLabel');
+
+    spinBtn.onclick = () => {
+        spinBtn.disabled = true;
+        resultLabel.innerText = "⏳ جاري البحث عن جائزتك...";
+        
+        const extraDegree = Math.floor(Math.random() * 360) + 3600; 
         rotation += extraDegree;
         
-        canvas.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.2, 1)";
-        canvas.style.transform = `rotate(${rotation}deg)`;
+        wheelContainer.style.transform = `rotate(${rotation}deg)`;
         
         setTimeout(() => {
-            this.disabled = false;
+            spinBtn.disabled = false;
             const actualDeg = rotation % 360;
-            // حساب الجائزة بناءً على الزاوية (مع مراعاة التدوير الأولي بـ -90 درجة)
             const prizeIndex = Math.floor((360 - actualDeg) / (360 / numPrizes)) % numPrizes;
             
-            // إرسال النتيجة لـ Telegram
-            const result = prizes[prizeIndex];
-            if (result === "حظ أوفر") {
-                alert("للأسف، حظ أوفر في المرة القادمة!");
-            } else {
-                alert("🎊 مبروك! لقد ربحت: " + result);
-            }
-        }, 5000);
+            const finalPrize = prizes[prizeIndex];
+            resultLabel.innerText = finalPrize === "حظ أوفر" ? "😢 حظ أوفر للمرة القادمة" : `🎊 مبروك! ربحت ${finalPrize}`;
+        }, 6000);
     };
 
-    // إخبار تليجرام أن التطبيق جاهز
+    // إعدادات Telegram WebApp
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand(); // فتح الواجهة بكامل الشاشة
+    Telegram.WebApp.expand();
 </script>
 </body>
 </html>
