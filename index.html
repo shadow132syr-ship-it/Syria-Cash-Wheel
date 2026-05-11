@@ -1,67 +1,111 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syria Cash Wheel</title>
+    <title>سوريا كاش - العجلة</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .wheel-container { position: relative; width: 320px; height: 320px; border: 5px solid #1e293b; border-radius: 50%; }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ef4444; z-index: 10; }
-        canvas { border-radius: 50%; transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1); }
-        .btn { margin-top: 30px; padding: 12px 40px; background: #6366f1; border: none; border-radius: 25px; color: white; font-weight: bold; font-size: 1.1rem; }
+        body { background-color: #1a1c24; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; overflow: hidden; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { color: #ffcc00; margin-bottom: 5px; }
+        .header p { font-size: 14px; color: #aaa; }
+        
+        .wheel-container { position: relative; width: 320px; height: 320px; margin-top: 20px; }
+        #canvas { width: 100%; height: 100%; transform: rotate(-90deg); border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .arrow { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ffcc00; z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        
+        .spin-btn { margin-top: 40px; width: 85%; padding: 18px; font-size: 18px; font-weight: bold; background: linear-gradient(to right, #f1c40f, #e67e22); border: none; border-radius: 35px; color: #000; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4); }
+        .spin-btn:disabled { background: #444; color: #888; box-shadow: none; }
+        
+        /* تأثيرات إضافية لتشبه التطبيق */
+        .balance-card { background: #252833; padding: 10px 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; }
     </style>
 </head>
 <body>
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <canvas id="wheel" width="320" height="320"></canvas>
+
+    <div class="header">
+        <h2>سوريا كاش</h2>
+        <p>جرب حظك واربح مبالغ فورية</p>
     </div>
-    <div id="status" style="margin-top: 20px; color: #f1c40f;"></div>
-    <button class="btn" id="spinBtn">تدوير العجلة</button>
 
-    <script>
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const tg = window.Telegram.WebApp;
-        const prizes = [
-            {t:"50 ليرة", v:50, c:"#3498db"}, {t:"10 ليرات", v:10, c:"#2ecc71"},
-            {t:"5 ليرات", v:5, c:"#9b59b6"}, {t:"حظ أوفر", v:0, c:"#e67e22"},
-            {t:"15 ليرة", v:15, c:"#34495e"}, {t:"20 ليرة", v:20, c:"#16a085"},
-            {t:"25 ليرة", v:25, c:"#2980b9"}, {t:"30 ليرة", v:30, c:"#8e44ad"},
-            {t:"قسيمة 25$", v:1000, c:"#d35400"}, {t:"قسيمة 50$", v:2000, c:"#c0392b"},
-            {t:"125 ليرة", v:125, c:"#27ae60"}
-        ];
-        const arc = (2 * Math.PI) / prizes.length;
-        let rotation = 0;
+    <div class="balance-card">
+        <span>اللفات المتاحة: <b id="spins">1</b></span>
+    </div>
 
-        function draw() {
-            prizes.forEach((p, i) => {
-                ctx.beginPath(); ctx.fillStyle = p.c; ctx.moveTo(160, 160);
-                ctx.arc(160, 160, 160, i*arc, (i+1)*arc); ctx.fill();
-                ctx.save(); ctx.translate(160, 160); ctx.rotate(i*arc + arc/2);
-                ctx.textAlign = "right"; ctx.font = "bold 14px Arial";
-                ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeText(p.t, 150, 5);
-                ctx.fillStyle = "white"; ctx.fillText(p.t, 150, 5); ctx.restore();
-            });
-        }
-        draw();
+    <div class="wheel-container">
+        <div class="arrow"></div>
+        <canvas id="canvas" width="400" height="400"></canvas>
+    </div>
 
-        document.getElementById('spinBtn').onclick = function() {
-            this.disabled = true;
-            const chance = Math.random() * 100;
-            const target = (chance <= 90) ? 2 : Math.floor(Math.random() * prizes.length);
-            const extraSpins = 10 * 2 * Math.PI;
-            const stopAngle = (prizes.length - target - 0.5) * arc;
-            rotation += extraSpins + stopAngle;
-            canvas.style.transform = `rotate(${rotation}rad)`;
+    <button class="spin-btn" id="spinBtn">🎰 لـفّ العجلة</button>
 
-            setTimeout(() => {
-                document.getElementById('status').innerText = "مبروك! ربحت " + prizes[target].t;
-                setTimeout(() => { tg.sendData(prizes[target].v.toString()); tg.close(); }, 2000);
-            }, 6000);
-        };
-    </script>
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    
+    // المبالغ والألوان من الصور اللي بعتها
+    const prizes = ["100 ليرة", "20 ليرة", "1 ليرة", "حظ أوفر", "50 ليرة", "10 ليرات", "5 ليرات", "7 ليرات", "12 ليرة"];
+    const colors = ["#e74c3c", "#e67e22", "#2ecc71", "#7f8c8d", "#9b59b6", "#f1c40f", "#3498db", "#6c5ce7", "#2980b9"];
+    
+    const numPrizes = prizes.length;
+    const arc = 2 * Math.PI / numPrizes;
+
+    function drawWheel() {
+        prizes.forEach((prize, i) => {
+            const angle = i * arc;
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(200, 200);
+            ctx.arc(200, 200, 190, angle, angle + arc);
+            ctx.fill();
+            ctx.strokeStyle = "#1a1c24";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // إضافة النص
+            ctx.save();
+            ctx.translate(200, 200);
+            ctx.rotate(angle + arc / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px Arial";
+            ctx.fillText(prize, 180, 10);
+            ctx.restore();
+        });
+    }
+
+    drawWheel();
+
+    let rotation = 0;
+    spinBtn.onclick = function() {
+        this.disabled = true;
+        const extraDegree = Math.floor(Math.random() * 360) + 3600; // 10 لفات كاملة
+        rotation += extraDegree;
+        
+        canvas.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.2, 1)";
+        canvas.style.transform = `rotate(${rotation}deg)`;
+        
+        setTimeout(() => {
+            this.disabled = false;
+            const actualDeg = rotation % 360;
+            // حساب الجائزة بناءً على الزاوية (مع مراعاة التدوير الأولي بـ -90 درجة)
+            const prizeIndex = Math.floor((360 - actualDeg) / (360 / numPrizes)) % numPrizes;
+            
+            // إرسال النتيجة لـ Telegram
+            const result = prizes[prizeIndex];
+            if (result === "حظ أوفر") {
+                alert("للأسف، حظ أوفر في المرة القادمة!");
+            } else {
+                alert("🎊 مبروك! لقد ربحت: " + result);
+            }
+        }, 5000);
+    };
+
+    // إخبار تليجرام أن التطبيق جاهز
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand(); // فتح الواجهة بكامل الشاشة
+</script>
 </body>
 </html>
