@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Syria Cash v2 - الملكي</title>
+    <title>Syria Cash - v2.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0a0a0a; /* أسود عميق */
-            --accent-color: #800020; /* خمري (Burgundy) */
+            --bg-color: #0a0a0a;
+            --accent-color: #800020; /* خمري ملكي */
             --card-bg: #161616;
             --text-main: #ffffff;
             --text-dim: #b3b3b3;
@@ -18,36 +18,41 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
         }
 
-        /* الهيدر المحترف */
+        /* الهيدر مع الزر الجانبي */
         .header {
             width: 100%;
-            padding: 25px 0;
+            padding: 20px 0;
             text-align: center;
             background: linear-gradient(180deg, var(--accent-color) 0%, var(--bg-color) 100%);
-            border-bottom: 2px solid var(--accent-color);
-            box-shadow: 0 4px 15px rgba(128, 0, 32, 0.4);
+            position: relative;
         }
 
-        .header h1 { margin: 0; font-size: 28px; letter-spacing: 1px; color: white; }
-        .header p { margin: 5px 0 0; color: #ffcccc; font-size: 14px; }
-
-        /* منطقة العجلة الملكية */
-        .wheel-section {
-            margin: 20px 0;
-            display: flex; flex-direction: column; align-items: center;
+        .side-btn {
+            position: absolute;
+            right: 10px; top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
         }
 
+        /* العجلة */
         .wheel-container {
             position: relative;
-            width: 280px; height: 280px;
-            border: 10px solid var(--accent-color);
+            width: 260px; height: 260px;
+            margin: 20px auto;
+            border: 8px solid var(--accent-color);
             border-radius: 50%;
-            box-shadow: 0 0 20px var(--accent-color);
+            box-shadow: 0 0 20px rgba(128, 0, 32, 0.6);
         }
 
         #wheel {
@@ -65,136 +70,109 @@
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 70px; height: 70px;
+            width: 60px; height: 60px;
             background: white; color: var(--accent-color);
-            border: 3px solid var(--accent-color);
-            border-radius: 50%; font-weight: bold; font-size: 18px;
-            cursor: pointer; z-index: 5;
+            border-radius: 50%; border: none; font-weight: bold;
+            cursor: pointer; z-index: 10;
         }
 
-        /* الشبكة "بالميلي" */
+        /* شبكة الأزرار */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            width: 92%;
-            margin: 20px 0;
+            width: 90%;
+            margin-bottom: 30px;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 18px;
-            text-align: center;
-            border: 1px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        .card:active { transform: translateY(3px); background: var(--accent-color); }
-
-        .card h3 { margin: 8px 0 4px; font-size: 16px; color: var(--text-main); }
-        .card p { margin: 0; font-size: 11px; color: var(--text-dim); }
-
-        /* زر الملف الشخصي العريض */
-        .profile-bar {
-            width: 92%;
-            background: linear-gradient(90deg, var(--accent-color), #4a0012);
+            border-radius: 15px;
             padding: 15px;
-            border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid #2d2d2d;
+            transition: 0.2s;
         }
 
-        #status { color: var(--gold); font-weight: bold; margin-bottom: 10px; }
+        .card:active { background: var(--accent-color); transform: scale(0.95); }
+        .card h3 { font-size: 15px; margin: 5px 0; color: var(--text-main); }
+        .card p { font-size: 10px; color: var(--text-dim); margin: 0; }
+
+        #status { color: var(--gold); font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div class="header">
+        <button class="side-btn" onclick="sendToBot('الرئيسية')">🚪 ادخل عالم البوت</button>
         <h1>Syria Cash</h1>
-        <p>الإصدار الثاني | v2.1 PRO</p>
+        <p>Premium v2.2</p>
     </div>
 
-    <div class="profile-bar" onclick="sendMessage('حسابي')">
-        <span>👤 الملف الشخصي</span>
-        <span id="balance-display">عرض الرصيد 💰</span>
-    </div>
+    <div id="status">جرب حظك بالعجلة الملكية!</div>
 
-    <div class="wheel-section">
-        <div id="status">جاهز للمطالبة بجائزتك؟</div>
-        <div class="wheel-container">
-            <div id="wheel"></div>
-            <button class="spin-btn" onclick="spinWheel()">العب</button>
-        </div>
+    <div class="wheel-container">
+        <div id="wheel"></div>
+        <button class="spin-btn" onclick="spinWheel()">العب</button>
     </div>
 
     <div class="dashboard-grid">
-        <div class="card" onclick="sendMessage('المهمات')">
+        <div class="card" onclick="sendToBot('المهمات')">
             <h3>🚀 المهمات</h3>
             <p>أكمل المهام واربح</p>
         </div>
-        <div class="card" onclick="sendMessage('السحب')">
+        <div class="card" onclick="sendToBot('السحب')">
             <h3>💰 السحب</h3>
-            <p>تحويل الأموال للمحفظة</p>
+            <p>اطلب أرباحك الآن</p>
         </div>
-        <div class="card" onclick="sendMessage('برومو كود')">
+        <div class="card" onclick="sendToBot('الإحالات')">
+            <h3>👥 الإحالات</h3>
+            <p>أدعُ أصدقاءك</p>
+        </div>
+        <div class="card" onclick="sendToBot('برومو كود')">
             <h3>🎫 برومو</h3>
             <p>أدخل كود الهدية</p>
         </div>
-        <div class="card" onclick="sendMessage('الإحالات')">
-            <h3>👥 الإحالات</h3>
-            <p>أدعُ أصدقاءك واربح</p>
-        </div>
-        <div class="card" onclick="sendMessage('الدعم')">
+        <div class="card" onclick="sendToBot('الدعم')">
             <h3>👨‍💻 الدعم</h3>
-            <p>تواصل مع الإدارة</p>
+            <p>تواصل معنا</p>
         </div>
-        <div class="card" onclick="sendMessage('الشروط')">
+        <div class="card" onclick="sendToBot('الشروط')">
             <h3>📜 الشروط</h3>
-            <p>قوانين البوت</p>
+            <p>قوانين العمل</p>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
-        // إظهار اسم المستخدم إذا متاح
-        if(tg.initDataUnsafe.user) {
-            document.getElementById('balance-display').innerText = tg.initDataUnsafe.user.first_name;
+        function sendToBot(name) {
+            tg.sendData(JSON.stringify({
+                action: 'navigate',
+                menu: name
+            }));
+            setTimeout(() => tg.close(), 150);
         }
 
         let canSpin = true;
         function spinWheel() {
             if (!canSpin) return;
             canSpin = false;
-            
             const wheel = document.getElementById('wheel');
-            const randomDegree = Math.floor(Math.random() * 360) + 2160; // 6 دورات
-            wheel.style.transform = `rotate(${randomDegree}deg)`;
+            const deg = Math.floor(Math.random() * 360) + 2160;
+            wheel.style.transform = `rotate(${deg}deg)`;
 
             setTimeout(() => {
                 const prizes = [5, 10, 15, 20, 50, 100];
-                const prize = prizes[Math.floor(Math.random() * prizes.length)];
-                document.getElementById('status').innerText = `مبروك! ربحت ${prize} ليرة`;
+                const win = prizes[Math.floor(Math.random() * prizes.length)];
+                document.getElementById('status').innerText = `مبروك! ربحت ${win} ليرة`;
                 
-                // إرسال البيانات للبوت
                 tg.sendData(JSON.stringify({
                     action: 'wheel_spin',
-                    win: prize
+                    win: win
                 }));
             }, 4000);
-        }
-
-        function sendMessage(menuName) {
-            tg.sendData(JSON.stringify({
-                action: 'navigate',
-                menu: menuName
-            }));
-            // إغلاق الواجهة بعد الاختيار ليعود المستخدم للبوت
-            setTimeout(() => tg.close(), 100);
         }
     </script>
 </body>
