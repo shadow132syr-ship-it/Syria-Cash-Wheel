@@ -3,144 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوريا كاش - العجلة الملكية</title>
+    <title>Syria Cash - Throne V2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            background: radial-gradient(circle at center, #111e36 0%, #000000 100%); 
-            color: white; font-family: sans-serif; 
+            background: #0d1117; color: white; font-family: sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; margin: 0; overflow: hidden;
+            justify-content: center; height: 100vh; margin: 0;
         }
 
-        .wheel-container { position: relative; width: 340px; height: 340px; }
-
-        canvas { 
-            width: 100%; height: 100%; border-radius: 50%;
-            border: 15px solid #1a1a1a; 
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
-            transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
+        /* حاوية العجلة - محاكاة لإطار ثرون */
+        .throne-frame {
+            position: relative; width: 330px; height: 330px;
+            border: 10px solid #1e293b; border-radius: 50%;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 20px #000;
         }
 
-        .pointer {
-            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+        canvas { width: 100%; height: 100%; border-radius: 50%; transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1); }
+
+        /* المؤشر العلوي (مثل ثرون بالميلي) */
+        .throne-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
             width: 0; height: 0; 
-            border-left: 18px solid transparent; border-right: 18px solid transparent; 
-            border-top: 32px solid #7dd3fc; 
-            z-index: 10; filter: drop-shadow(0 0 8px #7dd3fc);
+            border-left: 14px solid transparent; border-right: 14px solid transparent; 
+            border-top: 25px solid #94a3b8; z-index: 10;
         }
 
-        .center-node {
+        /* المركز المتوهج */
+        .throne-center {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 65px; height: 65px; 
-            background: radial-gradient(circle at 30% 30%, #ff4b2b 0%, #a30000 100%);
-            border: 4px solid #1a1a1a; border-radius: 50%; z-index: 5;
-            box-shadow: 0 0 25px rgba(255, 75, 43, 0.7);
+            width: 50px; height: 50px; background: #e11d48; border-radius: 50%; 
+            border: 4px solid #0f172a; z-index: 5; box-shadow: 0 0 15px #e11d48;
         }
 
         .spin-btn {
-            margin-top: 40px; padding: 15px 50px; font-size: 18px; font-weight: bold;
-            background: linear-gradient(180deg, #1f293a 0%, #111827 100%);
-            color: #fff; border: 1px solid #374151; border-radius: 50px; cursor: pointer;
+            margin-top: 50px; padding: 15px 60px; font-size: 18px; 
+            background: #111827; color: white; border: 1px solid #334155;
+            border-radius: 30px; cursor: pointer; transition: 0.3s;
         }
-        .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .spin-btn:disabled { opacity: 0.3; }
+        #timer { margin-top: 15px; color: #64748b; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <div class="center-node"></div>
+    <div class="throne-frame">
+        <div class="throne-pointer"></div>
+        <div class="throne-center"></div>
         <canvas id="wheel" width="500" height="500"></canvas>
     </div>
 
     <button id="spin-button" class="spin-btn">لفّ العجلة الملكية 👑</button>
-    <p id="timer" style="margin-top: 15px; font-size: 14px; color: #9ca3af;"></p>
+    <p id="timer"></p>
 
 <script>
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const btn = document.getElementById('spin-button');
-    const timerText = document.getElementById('timer');
+    const timerDisplay = document.getElementById('timer');
 
-    // الجوائز بنفس ألوان صورتك
+    // توزيع الجوائز: 8 خانات (7 فوز بـ 5 ليرات، 1 حظ أوفر) لتحقيق نسبة الـ 80% تقريباً برمجياً
     const segments = [
-        { prize: "5 ليرات", color: "#b91c1c", value: 5 }, 
-        { prize: "5 ليرات", color: "#ea580c", value: 5 },
-        { prize: "5 ليرات", color: "#16a34a", value: 5 },
-        { prize: "حظ أوفر", color: "#475569", value: 0 },
-        { prize: "5 ليرات", color: "#7c3aed", value: 5 },
-        { prize: "5 ليرات", color: "#ca8a04", value: 5 },
-        { prize: "5 ليرات", color: "#0284c7", value: 5 },
-        { prize: "حظ أوفر", color: "#9333ea", value: 0 },
-        { prize: "5 ليرات", color: "#2563eb", value: 5 }
+        { label: "5 ليرات", color: "#facc15", win: true },
+        { label: "5 ليرات", color: "#ef4444", win: true },
+        { label: "5 ليرات", color: "#22c55e", win: true },
+        { label: "حظ أوفر", color: "#475569", win: false },
+        { label: "5 ليرات", color: "#3b82f6", win: true },
+        { label: "5 ليرات", color: "#a855f7", win: true },
+        { label: "5 ليرات", color: "#f97316", win: true },
+        { label: "5 ليرات", color: "#06b6d4", win: true }
     ];
 
     const numSegments = segments.length;
-    const sliceAngle = (2 * Math.PI) / numSegments;
+    const anglePerSeg = (2 * Math.PI) / numSegments;
 
-    function drawWheel() {
+    function drawThroneWheel() {
         segments.forEach((seg, i) => {
-            const angle = i * sliceAngle;
+            const angle = i * anglePerSeg;
+            // رسم الفواصل والخطوط بالميلي
             ctx.beginPath(); ctx.fillStyle = seg.color; ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 250, angle, angle + sliceAngle); ctx.fill();
-            ctx.save(); ctx.translate(250, 250); ctx.rotate(angle + sliceAngle / 2);
-            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 22px Arial";
-            ctx.fillText(seg.prize, 230, 10); ctx.restore();
+            ctx.arc(250, 250, 250, angle, angle + anglePerSeg); ctx.fill();
+            ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 4; ctx.stroke();
+            
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(angle + anglePerSeg/2);
+            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 24px Arial";
+            ctx.fillText(seg.label, 230, 10); ctx.restore();
         });
     }
+    drawThroneWheel();
 
-    drawWheel();
-
-    // التحقق من وقت آخر تدوير (كل 24 ساعة)
-    function canSpin() {
-        const lastSpin = localStorage.getItem('lastSpinTime');
-        if (!lastSpin) return true;
-        const now = new Date().getTime();
-        return (now - lastSpin) > (24 * 60 * 60 * 1000);
+    function check24HourLock() {
+        const lastSpin = localStorage.getItem('syria_cash_last_spin');
+        if (lastSpin) {
+            const wait = 24 * 60 * 60 * 1000 - (Date.now() - lastSpin);
+            if (wait > 0) {
+                btn.disabled = true;
+                const hours = Math.floor(wait / (1000 * 60 * 60));
+                timerDisplay.innerText = `التدويرة التالية خلال ${hours} ساعة`;
+                return false;
+            }
+        }
+        return true;
     }
-
-    if (!canSpin()) {
-        btn.disabled = true;
-        btn.innerText = "عد لاحقاً";
-        timerText.innerText = "يمكنك التدوير مرة كل 24 ساعة";
-    }
+    check24HourLock();
 
     let rotation = 0;
     btn.onclick = () => {
-        if (!canSpin()) return;
+        if (!check24HourLock()) return;
 
-        btn.disabled = true;
-        
-        // ضبط الاحتمالات: 80% تربح 5 ليرات، 20% حظ أوفر
-        const rand = Math.random() * 100;
+        // تطبيق نسبة 80% فوز و 20% حظ أوفر برمجياً
+        const randomLuck = Math.random() * 100;
         let targetIndex;
-        if (rand <= 80) {
-            const winIndices = [0, 1, 2, 4, 5, 6, 8]; // فئات الـ 5 ليرات
+        if (randomLuck <= 80) {
+            const winIndices = [0, 1, 2, 4, 5, 6, 7];
             targetIndex = winIndices[Math.floor(Math.random() * winIndices.length)];
         } else {
-            const loseIndices = [3, 7]; // فئات حظ أوفر
-            targetIndex = loseIndices[Math.floor(Math.random() * loseIndices.length)];
+            targetIndex = 3; // خانة حظ أوفر
         }
 
-        const targetAngle = (360 - (targetIndex * (360 / numSegments)) - (180 / numSegments) + 270) % 360;
-        rotation += 3600 + targetAngle - (rotation % 360);
+        const extraDegree = (360 / numSegments) * targetIndex;
+        rotation += 3600 + (360 - extraDegree);
         canvas.style.transform = `rotate(${rotation}deg)`;
 
         setTimeout(() => {
+            localStorage.setItem('syria_cash_last_spin', Date.now());
             const result = segments[targetIndex];
-            localStorage.setItem('lastSpinTime', new Date().getTime());
             
-            // إرسال البيانات فوراً للبوت ليضيفها للرصيد
+            // إرسال البيانات فوراً لإضافة الرصيد في البوت
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.sendData(JSON.stringify({
-                    prize: result.prize,
-                    amount: result.value
+                    amount: result.win ? 5 : 0,
+                    status: result.label
                 }));
             }
-            alert(result.prize === "حظ أوفر" ? "للأسف، حظ أوفر في المرة القادمة!" : "مبروك! تم إضافة 5 ليرات لرصيدك.");
-            location.reload(); 
-        }, 6000);
+            alert(result.win ? "مبروك! تم إضافة 5 ليرات لرصيدك" : "حظ أوفر!");
+            location.reload();
+        }, 6500);
     };
 </script>
 </body>
