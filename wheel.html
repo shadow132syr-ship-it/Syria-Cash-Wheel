@@ -3,167 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Syria Cash - Ultimate Wheel</title>
+    <title>سوريا كاش - V3 ثابتة</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --primary-blue: #00d2ff;
-            --throne-dark: #05070a;
-            --gold: #d4af37;
-        }
-
         body { 
-            background: var(--throne-dark); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #05070a; color: white; font-family: sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; margin: 0; overflow: hidden;
-            touch-action: manipulation;
         }
-
-        /* حاوية العجلة - الضبط الهندسي المليمتري */
-        .wheel-box {
-            position: relative; width: 320px; height: 320px;
+        /* الحاوية الأساسية لضمان التمركز المطلق */
+        .wrapper {
+            position: relative; width: 300px; height: 300px;
             display: flex; align-items: center; justify-content: center;
-            perspective: 1000px;
         }
-
         canvas { 
             width: 100%; height: 100%; border-radius: 50%;
-            border: 10px solid #111; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8), 0 0 20px rgba(0, 210, 255, 0.1);
-            transition: transform 8s cubic-bezier(0.15, 0, 0.1, 1);
-            will-change: transform;
+            border: 8px solid #111; z-index: 1;
+            transition: transform 7s cubic-bezier(0.1, 0, 0.1, 1);
         }
-
-        /* المؤشر العلوي المتحرك */
+        /* المؤشر العلوي */
         .pointer {
             position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 30px; height: 40px; z-index: 10;
-            filter: drop-shadow(0 0 10px var(--primary-blue));
-            transition: 0.1s;
+            width: 0; height: 0; border-left: 15px solid transparent; 
+            border-right: 15px solid transparent; border-top: 25px solid #00d2ff; 
+            z-index: 10; filter: drop-shadow(0 0 5px #00d2ff);
         }
-        .pointer::after {
-            content: ''; position: absolute; top: 0; left: 0;
-            border-left: 15px solid transparent; border-right: 15px solid transparent; 
-            border-top: 30px solid var(--primary-blue);
-        }
-
-        /* المركز - تثبيت مطلق لمنع الـ "حول" */
-        .center-pin {
+        /* المركز الثابت - البرغي */
+        .center-nut {
             position: absolute; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            width: 54px; height: 54px; 
+            width: 45px; height: 45px; 
             background: radial-gradient(circle, #333 0%, #000 100%);
-            border: 4px solid #1a1a1a; border-radius: 50%; z-index: 5;
-            box-shadow: 0 0 20px rgba(0,0,0,0.9), inset 0 0 5px var(--primary-blue);
+            border: 3px solid #1a1a1a; border-radius: 50%; z-index: 5;
+            box-shadow: 0 0 15px rgba(0,0,0,1);
         }
-
-        .spin-btn {
-            margin-top: 60px; padding: 18px 70px; font-size: 20px; font-weight: bold;
-            background: linear-gradient(180deg, #1f293a 0%, #000 100%);
-            color: #fff; border: 1px solid var(--primary-blue);
-            border-radius: 50px; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .btn {
+            margin-top: 50px; padding: 15px 60px; font-size: 18px; font-weight: bold;
+            background: #111; color: #fff; border: 1px solid #00d2ff;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 0 10px rgba(0,210,255,0.2);
         }
-
-        .spin-btn:active:not(:disabled) { transform: scale(0.9) translateY(2px); }
-        .spin-btn:disabled { opacity: 0.4; border-color: #333; color: #666; cursor: not-allowed; }
-
-        #timer { margin-top: 20px; font-size: 14px; color: #555; letter-spacing: 1px; }
-        
-        /* تأثير الوميض عند الفوز */
-        .win-glow { animation: glow 1s ease-in-out infinite alternate; }
-        @keyframes glow { from { box-shadow: 0 0 20px var(--primary-blue); } to { box-shadow: 0 0 40px var(--primary-blue); } }
     </style>
 </head>
 <body>
 
-    <div class="wheel-box" id="main-container">
-        <div class="pointer" id="pointer-ui"></div>
-        <div class="center-pin"></div>
-        <canvas id="wheel" width="600" height="600"></canvas>
+    <div class="wrapper">
+        <div class="pointer"></div>
+        <div class="center-nut"></div>
+        <canvas id="wheel" width="500" height="500"></canvas>
     </div>
 
-    <button id="spin-button" class="spin-btn">لفّ العجلة الملكية 👑</button>
-    <div id="timer"></div>
+    <button id="spin-button" class="btn">لفّ العجلة الملكية 👑</button>
 
 <script>
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const btn = document.getElementById('spin-button');
-    const timerDisplay = document.getElementById('timer');
-    const tg = window.Telegram?.WebApp;
-
-    if (tg) { tg.expand(); tg.ready(); }
 
     const segments = [
-        { label: "100 ليرة", color: "#b91c1c", v: 100 },
-        { label: "20 ليرة", color: "#ea580c", v: 20 },
-        { label: "1 ليرة", color: "#16a34a", v: 1 },
-        { label: "حظ أوفر", color: "#334155", v: 0 },
-        { label: "50 ليرة", color: "#7e22ce", v: 50 },
-        { label: "10 ليرات", color: "#ca8a04", v: 10 },
-        { label: "5 ليرات", color: "#0369a1", v: 5 },
-        { label: "7 ليرات", color: "#6d28d9", v: 7 },
-        { label: "12 ليرة", color: "#1d4ed8", v: 12 }
+        { label: "100 ليرة", color: "#b91c1c" },
+        { label: "20 ليرة", color: "#ea580c" },
+        { label: "1 ليرة", color: "#16a34a" },
+        { label: "حظ أوفر", color: "#475569" },
+        { label: "50 ليرة", color: "#9333ea" },
+        { label: "10 ليرات", color: "#ca8a04" },
+        { label: "5 ليرات", color: "#0284c7" },
+        { label: "7 ليرات", color: "#7c3aed" },
+        { label: "12 ليرة", color: "#2563eb" }
     ];
 
-    function draw() {
-        const segAngle = (Math.PI * 2) / segments.length;
-        ctx.clearRect(0, 0, 600, 600);
-        segments.forEach((s, i) => {
+    function drawWheel() {
+        const segAngle = (2 * Math.PI) / segments.length;
+        for (let i = 0; i < segments.length; i++) {
             const angle = i * segAngle;
-            ctx.beginPath(); ctx.fillStyle = s.color; ctx.moveTo(300, 300);
-            ctx.arc(300, 300, 300, angle, angle + segAngle); ctx.fill();
+            ctx.beginPath(); ctx.fillStyle = segments[i].color; ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 250, angle, angle + segAngle); ctx.fill();
+            ctx.strokeStyle = "#111"; ctx.lineWidth = 2; ctx.stroke();
             
-            // خطوط الفصل الفخمة
-            ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.lineWidth = 3; ctx.stroke();
-
-            ctx.save(); ctx.translate(300, 300); ctx.rotate(angle + segAngle / 2);
-            ctx.textAlign = "right"; ctx.fillStyle = "#fff"; ctx.font = "bold 26px Segoe UI";
-            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 5;
-            ctx.fillText(s.label, 280, 10); ctx.restore();
-        });
-    }
-    draw();
-
-    function updateTimer() {
-        const last = localStorage.getItem('last_spin_time');
-        if (last) {
-            const diff = 24 * 60 * 60 * 1000 - (Date.now() - last);
-            if (diff > 0) {
-                btn.disabled = true;
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                timerDisplay.innerText = `متاح مجدداً خلال: ${h}س ${m}د ${s}ث`;
-                setTimeout(updateTimer, 1000);
-                return;
-            }
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(angle + segAngle / 2);
+            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 22px Arial";
+            ctx.fillText(segments[i].label, 230, 10); ctx.restore();
         }
-        btn.disabled = false;
-        timerDisplay.innerText = "العجلة جاهزة للدوران!";
     }
-    updateTimer();
 
-    let currentRot = 0;
+    // تأكيد الرسم فور التحميل وبعد ثانية لضمان الظهور
+    window.onload = () => {
+        drawWheel();
+        setTimeout(drawWheel, 500); 
+    };
+
+    let rotation = 0;
     btn.onclick = () => {
         btn.disabled = true;
-        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-
         const luck = Math.random() * 100;
-        let targetIdx = luck <= 80 ? 6 : 3; // نسبة 80% لـ 5 ليرات
+        let targetIdx = luck <= 80 ? 6 : 3; // 80% لـ 5 ليرات
 
-        const segAngle = 360 / segments.length;
-        const targetAngle = (360 - (targetIdx * segAngle) - (segAngle / 2) + 270) % 360;
+        const segDeg = 360 / segments.length;
+        const stopAt = (360 - (targetIdx * segDeg) - (segDeg / 2) + 270) % 360;
         
-        currentRot += 3600 + targetAngle - (currentRot % 360);
-        canvas.style.transform = `rotate(${currentRot}deg)`;
+        rotation += 3600 + stopAt - (rotation % 360);
+        canvas.style.transform = `rotate(${rotation}deg)`;
 
         setTimeout(() => {
-            localStorage.setItem('last_spin_time', Date.now());
-            document.getElementById('main-container').classList.add('win-glow');
-            
-            if (tg) {
-                tg.HapticFeedback.notificationOccurred(targetIdx === 6 ? 'success' : 'warning
-                                                       
+            alert(targetIdx === 6 ? "مبروك! ربحت 5 ليرات" : "حظ أوفر!");
+            btn.disabled = false;
+        }, 7500);
+    };
+</script>
+</body>
+</html>
