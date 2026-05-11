@@ -3,158 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>سوريا كاش - العجلة الملكية</title>
+    <title>Lira Cash - Syria</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background: #05070a; color: white; font-family: 'Segoe UI', sans-serif; 
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; margin: 0; overflow: hidden;
+        :root {
+            --bg-color: #0f121a;
+            --card-bg: #1e222d;
+            --text-main: #ffffff;
+            --text-dim: #8e9297;
+            --accent-gold: #ffb400;
         }
 
-        .wrapper {
-            position: relative; width: 320px; height: 320px;
-            display: flex; align-items: center; justify-content: center;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
         }
 
-        canvas { 
-            width: 100%; height: 100%; border-radius: 50%;
-            border: 8px solid #111; z-index: 1;
-            transition: transform 7s cubic-bezier(0.1, 0, 0.1, 1);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        /* حاوية المعلومات العلوية */
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, #161b26, var(--bg-color));
         }
 
-        .pointer {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 15px solid transparent; 
-            border-right: 15px solid transparent; border-top: 25px solid #00d2ff; 
-            z-index: 10; filter: drop-shadow(0 0 5px #00d2ff);
+        .header h1 { color: var(--accent-gold); margin: 0; font-size: 24px; }
+        .header p { color: var(--text-dim); margin: 5px 0; }
+
+        /* منطقة العجلة */
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
         }
 
-        .center-nut {
-            position: absolute; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 50px; height: 50px; 
-            background: radial-gradient(circle, #ff3b3b 0%, #8b0000 100%);
-            border: 4px solid #1a1a1a; border-radius: 50%; z-index: 5;
-            box-shadow: 0 0 15px rgba(0,0,0,1);
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid var(--card-bg);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            background: conic-gradient(
+                #ffb400 0deg 60deg, #1e222d 60deg 120deg,
+                #ffb400 120deg 180deg, #1e222d 180deg 240deg,
+                #ffb400 240deg 300deg, #1e222d 300deg 360deg
+            );
         }
 
-        .btn {
-            margin-top: 40px; padding: 16px 70px; font-size: 20px; font-weight: bold;
-            background: #111; color: #fff; border: 1px solid #00d2ff;
-            border-radius: 50px; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 0 15px rgba(0,210,255,0.2);
+        .spin-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px; height: 60px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            border: none;
+            color: #000; font-weight: bold;
+            cursor: pointer; z-index: 10;
+            box-shadow: 0 0 15px rgba(255, 180, 0, 0.5);
         }
 
-        #timer {
-            margin-top: 20px; font-size: 18px; color: #ff3b3b;
-            font-weight: bold; display: none;
+        /* الشبكة "بالميلي" - الخانتين المتساويتين */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 90%;
+            max-width: 400px;
+            margin-top: 30px;
         }
 
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #333; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #2d323e;
+            transition: 0.2s;
+        }
+
+        .card:active { transform: scale(0.95); }
+        .card img { width: 40px; height: 40px; margin-bottom: 10px; }
+        .card h3 { font-size: 16px; margin: 5px 0; }
+        .card p { font-size: 11px; color: var(--text-dim); margin: 0; }
+
+        /* التنبيهات */
+        #status {
+            margin-top: 15px;
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <div class="pointer"></div>
-        <div class="center-nut"></div>
-        <canvas id="wheel" width="500" height="500"></canvas>
+    <div class="header">
+        <h1>Lira Cash</h1>
+        <p id="user-name">أهلاً بك</p>
     </div>
 
-    <button id="spin-button" class="btn">لفّ العجلة الملكية 👑</button>
-    <div id="timer"></div>
+    <div class="wheel-container">
+        <div id="wheel"></div>
+        <button class="spin-btn" onclick="spinWheel()">إبدأ</button>
+    </div>
 
-<script>
-    const canvas = document.getElementById('wheel');
-    const ctx = canvas.getContext('2d');
-    const btn = document.getElementById('spin-button');
-    const timerDisplay = document.getElementById('timer');
-    const tg = window.Telegram.WebApp;
+    <div id="status">جرب حظك اليوم!</div>
 
-    const segments = [
-        { label: "100 ليرة", color: "#b91c1c", value: 100 },
-        { label: "20 ليرة", color: "#ea580c", value: 20 },
-        { label: "1 ليرة", color: "#16a34a", value: 1 },
-        { label: "حظ أوفر", color: "#475569", value: 0 },
-        { label: "50 ليرة", color: "#9333ea", value: 50 },
-        { label: "10 ليرات", color: "#ca8a04", value: 10 },
-        { label: "5 ليرات", color: "#0284c7", value: 5 },
-        { label: "7 ليرات", color: "#7c3aed", value: 7 },
-        { label: "12 ليرة", color: "#2563eb", value: 12 }
-    ];
+    <div class="dashboard-grid">
+        <div class="card" onclick="sendMessage('المهمات')">
+            <h3>🚀 المهمات</h3>
+            <p>جمع قسائم مجانية</p>
+        </div>
+        <div class="card" onclick="sendMessage('السحب')">
+            <h3>💰 السحب</h3>
+            <p>اطلب أرباحك الآن</p>
+        </div>
+        <div class="card" onclick="sendMessage('الشكاوي')">
+            <h3>⚠️ شكوى</h3>
+            <p>تواجه مشكلة؟</p>
+        </div>
+        <div class="card" onclick="sendMessage('برومو كود')">
+            <h3>🎫 برومو</h3>
+            <p>أدخل كود الهدية</p>
+        </div>
+    </div>
 
-    function drawWheel() {
-        const segAngle = (2 * Math.PI) / segments.length;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < segments.length; i++) {
-            const angle = i * segAngle;
-            ctx.beginPath(); ctx.fillStyle = segments[i].color; ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 250, angle, angle + segAngle); ctx.fill();
-            ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.lineWidth = 2; ctx.stroke();
-            ctx.save(); ctx.translate(250, 250); ctx.rotate(angle + segAngle / 2);
-            ctx.textAlign = "right"; ctx.fillStyle = "white"; ctx.font = "bold 24px Arial";
-            ctx.fillText(segments[i].label, 235, 10); ctx.restore();
-        }
-    }
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // فتح الصفحة بكامل الشاشة
 
-    // نظام فحص الـ 24 ساعة
-    function updateTimer() {
-        const lastSpin = localStorage.getItem('last_spin_sy');
-        if (lastSpin) {
-            const now = Date.now();
-            const diff = now - parseInt(lastSpin);
-            const cooldown = 24 * 60 * 60 * 1000; 
+        const wheel = document.getElementById('wheel');
+        const status = document.getElementById('status');
+        let canSpin = true;
 
-            if (diff < cooldown) {
-                btn.disabled = true;
-                timerDisplay.style.display = 'block';
-                const rem = cooldown - diff;
-                const h = Math.floor(rem / 3600000);
-                const m = Math.floor((rem % 3600000) / 60000);
-                const s = Math.floor((rem % 60000) / 1000);
-                timerDisplay.innerText = `عُد بعد: ${h}س ${m}د ${s}ث`;
-                setTimeout(updateTimer, 1000);
-                return;
-            }
-        }
-        btn.disabled = false;
-        timerDisplay.style.display = 'none';
-    }
+        function spinWheel() {
+            if (!canSpin) return;
+            canSpin = false;
+            
+            const randomDegree = Math.floor(Math.random() * 360) + 1800; // 5 دورات كحد أدنى
+            wheel.style.transform = `rotate(${randomDegree}deg)`;
 
-    window.onload = () => {
-        drawWheel();
-        setTimeout(drawWheel, 500);
-        updateTimer();
-        if (tg) { tg.expand(); tg.ready(); }
-    };
-
-    btn.onclick = () => {
-        btn.disabled = true;
-        const luck = Math.random() * 100;
-        let targetIdx = luck <= 80 ? 6 : 3; // 80% لـ 5 ليرات
-
-        const segDeg = 360 / segments.length;
-        const stopAt = (360 - (targetIdx * segDeg) - (segDeg / 2) + 270) % 360;
-        let rotation = 3600 + stopAt;
-        canvas.style.transform = `rotate(${rotation}deg)`;
-
-        setTimeout(() => {
-            const result = segments[targetIdx];
-            localStorage.setItem('last_spin_sy', Date.now().toString());
-
-            // إرسال البيانات للبوت لتحديث الرصيد الفعلي
-            if (tg && tg.sendData) {
+            setTimeout(() => {
+                const winAmounts = [5, 10, 15, 20, 50, 100];
+                const prize = winAmounts[Math.floor(Math.random() * winAmounts.length)];
+                
+                status.innerText = `مبروك! ربحت ${prize} ليرة`;
+                
+                // إرسال البيانات للبوت
                 tg.sendData(JSON.stringify({
-                    win: result.value,
-                    label: result.label
+                    win: prize,
+                    action: 'wheel_spin'
                 }));
-            }
-            alert(result.value > 0 ? `مبروك! ربحت ${result.value} ليرة` : "حظ أوفر!");
-            updateTimer();
-        }, 7500);
-    };
-</script>
+
+                // إغلاق الواجهة تلقائياً بعد ثانيتين
+                setTimeout(() => tg.close(), 2000);
+            }, 4000);
+        }
+
+        function sendMessage(text) {
+            tg.sendData(JSON.stringify({ action: 'navigate', menu: text }));
+            tg.close();
+        }
+    </script>
 </body>
 </html>
