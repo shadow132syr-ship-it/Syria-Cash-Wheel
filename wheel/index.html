@@ -1,5 +1,735 @@
-git init
-git add index.html README.md
-git commit -m "🎡 Spin Wheel - Professional metallic pointer"
-git remote add origin https://github.com/USERNAME/REPO
-git push -u origin main
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عجلة الحظ 🎡</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #FFD700;
+    --gold2: #FFA500;
+    --dark: #0a0a0f;
+    --card: #13131f;
+    --glow: rgba(255,215,0,0.35);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--dark);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Stars background ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--d,3s) infinite var(--delay,0s);
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:0} 50%{opacity:var(--op,0.8)}
+  }
+
+  /* ── Main container ── */
+  .container {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 24px;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem,5vw,2.4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #FFD700, #FF8C00, #FFD700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    letter-spacing: 1px;
+    animation: shimmer 3s linear infinite;
+    background-size: 200%;
+  }
+  @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+
+  /* ── Wheel wrapper ── */
+  .wheel-wrapper {
+    position: relative;
+    width: min(420px, 92vw);
+    height: min(420px, 92vw);
+  }
+
+  /* glow ring */
+  .wheel-wrapper::before {
+    content:'';
+    position:absolute; inset:-14px;
+    border-radius:50%;
+    background: conic-gradient(from 0deg, #FFD700, #FF4500, #9b59b6, #3498db, #2ecc71, #FFD700);
+    animation: spin-glow 8s linear infinite;
+    opacity: 0.5;
+    filter: blur(10px);
+  }
+  @keyframes spin-glow { to{transform:rotate(360deg)} }
+
+  /* ── Canvas ── */
+  #wheelCanvas {
+    position: relative; z-index:2;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: filter 0.3s;
+    filter: drop-shadow(0 0 20px var(--glow));
+    touch-action: none;
+  }
+  #wheelCanvas:hover { filter: drop-shadow(0 0 35px rgba(255,215,0,0.6)); }
+  #wheelCanvas.spinning { cursor: not-allowed; }
+
+  /* ── Pointer ── */
+  .pointer {
+    position: absolute;
+    top: -22px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.8));
+    animation: pointer-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pointer-pulse {
+    0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.12)}
+  }
+
+  /* ── Center button ── */
+  .center-btn {
+    position:absolute; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    z-index: 10;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700, #FF8C00);
+    border: 4px solid #fff;
+    box-shadow: 0 0 20px var(--glow), inset 0 2px 4px rgba(255,255,255,0.4);
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex; align-items:center; justify-content:center;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .center-btn:hover { transform: translate(-50%,-50%) scale(1.1); box-shadow:0 0 35px var(--glow); }
+  .center-btn:active { transform: translate(-50%,-50%) scale(0.95); }
+  .center-btn.spinning { animation: spin-btn 0.4s linear infinite; }
+  @keyframes spin-btn { to{transform:translate(-50%,-50%) rotate(360deg)} }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 50px;
+    border: 2px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .btn::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg,#FFD700,#FF8C00);
+    opacity:0; transition: opacity 0.2s;
+  }
+  .btn:hover { color:#000; }
+  .btn:hover::before { opacity:1; }
+  .btn span { position:relative; z-index:1; }
+  .btn.primary {
+    background: linear-gradient(135deg,#FFD700,#FF8C00);
+    color: #000;
+  }
+  .btn.primary::before { background: linear-gradient(135deg,#fff,#FFD700); }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  /* ── Input ── */
+  .add-section {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
+  }
+  .add-input {
+    padding: 10px 16px; border-radius: 50px;
+    border: 2px solid #333; background: var(--card);
+    color: #fff; font-family: 'Cairo', sans-serif; font-size: 1rem;
+    outline: none; width: 180px; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .add-input:focus { border-color: var(--gold); box-shadow: 0 0 12px var(--glow); }
+
+  /* ── Result overlay ── */
+  .result-overlay {
+    position: fixed; inset:0; z-index:100;
+    background: rgba(0,0,0,0.85);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition: opacity 0.4s;
+    backdrop-filter: blur(8px);
+  }
+  .result-overlay.show { opacity:1; pointer-events:all; }
+
+  .result-card {
+    background: var(--card);
+    border: 2px solid var(--gold);
+    border-radius: 24px;
+    padding: 40px 48px;
+    text-align: center;
+    box-shadow: 0 0 60px var(--glow);
+    transform: scale(0.7) rotate(-5deg);
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 90vw;
+  }
+  .result-overlay.show .result-card { transform: scale(1) rotate(0deg); }
+
+  .result-emoji { font-size: 4rem; margin-bottom: 12px; animation: bounce 0.6s ease infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  .result-title { font-size: 1rem; color: #aaa; margin-bottom: 8px; }
+  .result-text {
+    font-size: clamp(1.8rem,6vw,2.8rem); font-weight: 900;
+    background: linear-gradient(135deg,#FFD700,#FF8C00);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+
+  /* ── Confetti ── */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 14px;
+    pointer-events:none; z-index:200;
+    animation: confetti-fall var(--cf-dur,2s) var(--cf-delay,0s) cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    transform-origin: center center;
+  }
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity:1; }
+    80%  { opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg) scale(0.3); opacity:0; }
+  }
+
+  /* ── Particles ring ── */
+  .particle {
+    position:absolute; pointer-events:none; z-index:3;
+    width:8px; height:8px; border-radius:50%;
+    animation: particle-burst var(--p-dur,0.8s) var(--p-delay,0s) ease-out forwards;
+  }
+  @keyframes particle-burst {
+    0%  { transform: translate(0,0) scale(1); opacity:1; }
+    100%{ transform: translate(var(--tx),var(--ty)) scale(0); opacity:0; }
+  }
+
+  /* ── Speed indicator ── */
+  .speed-bar-wrap {
+    width: min(320px,85vw);
+    background: #1a1a2e;
+    border-radius: 50px;
+    border: 1px solid #333;
+    overflow: hidden;
+    height: 8px;
+  }
+  .speed-bar {
+    height: 100%;
+    background: linear-gradient(90deg,#FFD700,#FF4500);
+    border-radius: 50px;
+    width: 0%;
+    transition: width 0.1s;
+    box-shadow: 0 0 10px rgba(255,215,0,0.5);
+  }
+
+  /* ── Items list ── */
+  .items-list {
+    display: flex; flex-wrap:wrap; gap:6px; justify-content:center;
+    max-width: min(420px,90vw);
+  }
+  .item-tag {
+    padding: 4px 12px; border-radius:50px;
+    font-size:0.78rem; font-weight:700;
+    display:flex; align-items:center; gap:6px;
+    cursor:pointer; transition: transform 0.15s, opacity 0.15s;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .item-tag:hover { transform:scale(1.08); opacity:0.85; }
+  .item-tag .del { font-size:0.7rem; opacity:0.6; }
+
+  /* ── Sound icon ── */
+  .sound-toggle {
+    position:fixed; top:16px; left:16px; z-index:50;
+    width:40px; height:40px; border-radius:50%;
+    background:var(--card); border:1px solid #333;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; cursor:pointer; transition:all 0.2s;
+  }
+  .sound-toggle:hover { border-color:var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="sound-toggle" id="soundToggle" title="صوت">🔊</div>
+
+<div class="container">
+  <h1>🎡 عجلة الحظ</h1>
+
+  <div class="wheel-wrapper" id="wheelWrapper">
+    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    <div class="pointer">
+      <svg width="40" height="52" viewBox="0 0 40 52">
+        <defs>
+          <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFD700"/>
+            <stop offset="100%" stop-color="#FF4500"/>
+          </linearGradient>
+        </defs>
+        <polygon points="20,48 2,4 38,4" fill="url(#pg)" stroke="#000" stroke-width="2"/>
+        <circle cx="20" cy="48" r="5" fill="#FFD700" stroke="#000" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="center-btn" id="centerBtn">🎯</div>
+  </div>
+
+  <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
+
+  <div class="controls">
+    <button class="btn primary" id="spinBtn"><span>🎰 أدر العجلة</span></button>
+    <button class="btn" id="shuffleBtn"><span>🔀 خلط</span></button>
+    <button class="btn" id="resetBtn"><span>↩️ إعادة</span></button>
+  </div>
+
+  <div class="add-section">
+    <input class="add-input" id="addInput" placeholder="أضف خياراً..." maxlength="20">
+    <button class="btn" id="addBtn"><span>➕ أضف</span></button>
+  </div>
+
+  <div class="items-list" id="itemsList"></div>
+</div>
+
+<!-- Result overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title">الفائز هو</div>
+    <div class="result-text" id="resultText">—</div>
+    <br>
+    <button class="btn primary" id="closeResult"><span>🔄 جولة جديدة</span></button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const DEFAULT_ITEMS = [
+  { label:"🏆 المركز الأول", color:"#FF6B6B" },
+  { label:"🎁 جائزة مفاجأة", color:"#4ECDC4" },
+  { label:"⭐ نجمة ذهبية",   color:"#45B7D1" },
+  { label:"🎮 العب مجاناً",   color:"#96CEB4" },
+  { label:"🍕 وجبة مجانية",  color:"#FFEAA7" },
+  { label:"💎 جائزة كبرى",   color:"#DDA0DD" },
+  { label:"🚀 مستوى أعلى",   color:"#F0A500" },
+  { label:"❌ حظ أوفر",       color:"#636E72" },
+];
+
+let items = [...DEFAULT_ITEMS];
+let angle = 0;
+let spinning = false;
+let soundOn = true;
+let targetSegment = -1;
+
+// ══════════════════════════════════════════
+//  AUDIO
+// ══════════════════════════════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+function playTick() {
+  if (!soundOn) return;
+  try {
+    const ctx = getAudioCtx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 600 + Math.random()*400;
+    o.type = 'triangle';
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.08);
+    o.start(); o.stop(ctx.currentTime+0.08);
+  } catch(e){}
+}
+function playWin() {
+  if (!soundOn) return;
+  try {
+    const ctx = getAudioCtx();
+    [523,659,784,1047].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      const t=ctx.currentTime+i*0.12;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.25,t+0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t); o.stop(t+0.35);
+    });
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════
+//  STARS
+// ══════════════════════════════════════════
+const starsEl = document.getElementById('stars');
+for(let i=0;i<120;i++){
+  const s=document.createElement('div'); s.className='star';
+  s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;
+    --d:${2+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${0.4+Math.random()*0.6};
+    width:${1+Math.random()*3}px;height:${1+Math.random()*3}px`;
+  starsEl.appendChild(s);
+}
+
+// ══════════════════════════════════════════
+//  CANVAS DRAW
+// ══════════════════════════════════════════
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, R = W/2;
+
+function drawWheel(currentAngle) {
+  const n = items.length;
+  const arc = (2*Math.PI)/n;
+  ctx.clearRect(0,0,W,H);
+
+  items.forEach((item,i) => {
+    const start = currentAngle + i*arc;
+    const end   = start + arc;
+
+    // segment
+    ctx.beginPath();
+    ctx.moveTo(R,R);
+    ctx.arc(R,R,R-4,start,end);
+    ctx.closePath();
+    ctx.fillStyle = item.color;
+    ctx.fill();
+
+    // gradient overlay for depth
+    const grad = ctx.createRadialGradient(R,R,R*0.2,R,R,R-4);
+    grad.addColorStop(0,'rgba(255,255,255,0.15)');
+    grad.addColorStop(1,'rgba(0,0,0,0.2)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // border
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // text
+    ctx.save();
+    ctx.translate(R,R);
+    ctx.rotate(start + arc/2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fff';
+    const fs = Math.min(15, 260/item.label.length);
+    ctx.font = `bold ${fs}px Cairo, sans-serif`;
+    ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=4;
+    ctx.fillText(item.label, R-14, 5);
+    ctx.restore();
+  });
+
+  // outer ring
+  ctx.beginPath();
+  ctx.arc(R,R,R-2,0,2*Math.PI);
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  // inner shadow
+  const innerG = ctx.createRadialGradient(R,R,R*0.6,R,R,R-4);
+  innerG.addColorStop(0,'transparent');
+  innerG.addColorStop(1,'rgba(0,0,0,0.25)');
+  ctx.beginPath();
+  ctx.arc(R,R,R-6,0,2*Math.PI);
+  ctx.fillStyle = innerG;
+  ctx.fill();
+
+  // highlight dots on border
+  const n2 = items.length * 2;
+  for(let i=0;i<n2;i++){
+    const a = currentAngle + (i/n2)*2*Math.PI;
+    const x = R + (R-6)*Math.cos(a);
+    const y = R + (R-6)*Math.sin(a);
+    ctx.beginPath();
+    ctx.arc(x,y,3.5,0,2*Math.PI);
+    ctx.fillStyle = i%2===0?'#FFD700':'#fff';
+    ctx.fill();
+  }
+}
+
+drawWheel(angle);
+
+// ══════════════════════════════════════════
+//  ITEMS LIST
+// ══════════════════════════════════════════
+function renderList() {
+  const list = document.getElementById('itemsList');
+  list.innerHTML = '';
+  items.forEach((item,i) => {
+    const tag = document.createElement('div');
+    tag.className = 'item-tag';
+    tag.style.background = item.color + '33';
+    tag.style.color = item.color;
+    tag.innerHTML = `<span>${item.label}</span><span class="del" title="حذف">✕</span>`;
+    tag.querySelector('.del').addEventListener('click', ()=>{
+      if(items.length<=2){alert('يجب أن يبقى خياران على الأقل');return;}
+      items.splice(i,1); renderList(); drawWheel(angle);
+    });
+    list.appendChild(tag);
+  });
+}
+renderList();
+
+// ══════════════════════════════════════════
+//  ADD ITEM
+// ══════════════════════════════════════════
+function addItem() {
+  const inp = document.getElementById('addInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  const hue = Math.floor(Math.random()*360);
+  items.push({ label: val, color:`hsl(${hue},70%,55%)` });
+  inp.value='';
+  renderList(); drawWheel(angle);
+}
+document.getElementById('addBtn').addEventListener('click', addItem);
+document.getElementById('addInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
+
+// ══════════════════════════════════════════
+//  SPIN
+// ══════════════════════════════════════════
+let animId;
+let currentSpeed = 0;
+
+function spinWheel() {
+  if(spinning) return;
+  spinning = true;
+  getAudioCtx(); // unlock audio
+
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('wheelCanvas').classList.add('spinning');
+  document.getElementById('centerBtn').classList.add('spinning');
+
+  const n = items.length;
+  const arc = (2*Math.PI)/n;
+  const chosenIndex = Math.floor(Math.random()*n);
+
+  // Calculate target angle: spin extra full rounds + land on chosen segment
+  const extraSpins = (8 + Math.random()*6) * 2 * Math.PI;
+  const segCenter = chosenIndex * arc + arc/2;
+  // pointer is at top (-PI/2). We want segCenter to end up at top.
+  const targetAngle = angle + extraSpins + (2*Math.PI - ((angle % (2*Math.PI)) + segCenter + Math.PI/2 - 2*Math.PI) % (2*Math.PI));
+  targetSegment = chosenIndex;
+
+  const startAngle = angle;
+  const totalChange = targetAngle - startAngle;
+  const duration = 4500 + Math.random()*1500; // ms
+  const startTime = performance.now();
+
+  let lastTickAngle = angle;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed/duration, 1);
+
+    // easing: fast start, slow end
+    const eased = easeOutCubic(progress);
+    const newAngle = startAngle + totalChange * eased;
+    angle = newAngle;
+
+    // speed for bar
+    const speed = Math.abs((newAngle - lastTickAngle));
+    document.getElementById('speedBar').style.width = Math.min(speed*800,100)+'%';
+
+    // tick sound
+    const tickAngle = newAngle % arc;
+    const prevTickAngle = lastTickAngle % arc;
+    if(tickAngle < prevTickAngle && speed > 0.01) playTick();
+
+    lastTickAngle = newAngle;
+    drawWheel(newAngle);
+
+    if(progress < 1) {
+      animId = requestAnimationFrame(animate);
+    } else {
+      // Done
+      angle = newAngle;
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      document.getElementById('wheelCanvas').classList.remove('spinning');
+      document.getElementById('centerBtn').classList.remove('spinning');
+      document.getElementById('speedBar').style.width = '0%';
+
+      const won = items[chosenIndex];
+      showResult(won, chosenIndex);
+    }
+  }
+
+  animId = requestAnimationFrame(animate);
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1-t, 4);
+}
+
+// ══════════════════════════════════════════
+//  RESULT
+// ══════════════════════════════════════════
+const emojis = ['🎉','🏆','🎊','⭐','🔥','💫','🎈','🥳'];
+
+function showResult(item, idx) {
+  playWin();
+  spawnConfetti();
+  spawnParticles(idx);
+
+  document.getElementById('resultEmoji').textContent = emojis[Math.floor(Math.random()*emojis.length)];
+  document.getElementById('resultText').textContent = item.label;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+document.getElementById('closeResult').addEventListener('click',()=>{
+  document.getElementById('resultOverlay').classList.remove('show');
+});
+document.getElementById('resultOverlay').addEventListener('click', e=>{
+  if(e.target===document.getElementById('resultOverlay'))
+    document.getElementById('resultOverlay').classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════
+const confettiColors = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0A500','#fff'];
+
+function spawnConfetti() {
+  for(let i=0;i<90;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText=`
+      left:${Math.random()*100}vw;
+      top:0;
+      background:${confettiColors[Math.floor(Math.random()*confettiColors.length)]};
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      width:${6+Math.random()*10}px;
+      height:${8+Math.random()*14}px;
+      --cf-dur:${1.5+Math.random()*2.5}s;
+      --cf-delay:${Math.random()*0.8}s;
+    `;
+    document.body.appendChild(c);
+    c.addEventListener('animationend',()=>c.remove());
+  }
+}
+
+// ══════════════════════════════════════════
+//  PARTICLES BURST from wheel center
+// ══════════════════════════════════════════
+function spawnParticles(segIdx) {
+  const wrapper = document.getElementById('wheelWrapper');
+  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#fff','#F0A500'];
+  for(let i=0;i<20;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const rad = Math.random()*2*Math.PI;
+    const dist = 80+Math.random()*140;
+    p.style.cssText=`
+      left:calc(50% - 4px); top:calc(50% - 4px);
+      background:${colors[i%colors.length]};
+      --tx:${Math.cos(rad)*dist}px;
+      --ty:${Math.sin(rad)*dist}px;
+      --p-dur:${0.6+Math.random()*0.6}s;
+      --p-delay:${Math.random()*0.2}s;
+    `;
+    wrapper.appendChild(p);
+    p.addEventListener('animationend',()=>p.remove());
+  }
+}
+
+// ══════════════════════════════════════════
+//  TOUCH / SWIPE SPIN
+// ══════════════════════════════════════════
+let touchStartY=0, touchStartTime=0;
+canvas.addEventListener('touchstart', e=>{ touchStartY=e.touches[0].clientY; touchStartTime=Date.now(); }, {passive:true});
+canvas.addEventListener('touchend', e=>{
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  const dt = Date.now() - touchStartTime;
+  if(Math.abs(dy)>40 && dt<400) spinWheel();
+}, {passive:true});
+canvas.addEventListener('click', spinWheel);
+
+// ══════════════════════════════════════════
+//  BUTTONS
+// ══════════════════════════════════════════
+document.getElementById('spinBtn').addEventListener('click', spinWheel);
+document.getElementById('centerBtn').addEventListener('click', spinWheel);
+
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  if(spinning)return;
+  for(let i=items.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [items[i],items[j]]=[items[j],items[i]];
+  }
+  drawWheel(angle); renderList();
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(spinning)return;
+  items=[...DEFAULT_ITEMS];
+  angle=0; drawWheel(angle); renderList();
+});
+
+document.getElementById('soundToggle').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  document.getElementById('soundToggle').textContent=soundOn?'🔊':'🔇';
+});
+
+// ══════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════
+document.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); spinWheel(); } });
+
+// ══════════════════════════════════════════
+//  IDLE SLOW ROTATION
+// ══════════════════════════════════════════
+let idleAngle = 0;
+function idleTick() {
+  if(!spinning) {
+    idleAngle += 0.0015;
+    drawWheel(angle + idleAngle);
+  }
+  requestAnimationFrame(idleTick);
+}
+// Only draw idle if not spinning
+let lastDraw = angle;
+(function idleLoop(){
+  if(!spinning){
+    drawWheel(angle + idleAngle);
+    idleAngle += 0.001;
+  }
+  requestAnimationFrame(idleLoop);
+})();
+</script>
+</body>
+</html>
