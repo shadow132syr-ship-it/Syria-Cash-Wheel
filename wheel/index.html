@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syria Cash - Wheel</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle, #1a2035, #0a0c16);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .wheel-container {
+            position: relative;
+            width: 90vw;
+            max-width: 380px;
+            height: 90vw;
+            max-height: 380px;
+            margin-bottom: 30px;
+            perspective: 1000px;
+        }
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10;
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px #ffcc00;
+            transform: rotateX(15deg);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+        .btn-spin {
+            background: linear-gradient(180deg, #3a3f58, #1e2235);
+            color: white;
+            border: 2px solid #ffcc00;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+        }
+        .btn-spin:disabled {
+            background: #2a2d3d;
+            border-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .info-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .gold-text { color: #ffcc00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    </div>
+
+    <button class="btn-spin" id="spinBtn" onclick="startSpin()">تدوير العجلة</button>
+
+    <div class="info-box" id="infoBox">
+        <span class="gold-text">الوضع الحقيقي نشط</span><br>
+        سيتم سحب التكلفة وتسجيل الجائزة في حسابك فوراً.
+    </div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // جلب البيانات من رابط الـ WebApp المرسل من البوت
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode') || 'cash'; // cash أو refs
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // إعداد الجوائز بناءً على اختيار المستخدم من البوت للشفافية والأمان
+    let prizes = [];
+    if(mode === 'refs') {
+        prizes = ["50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة"];
+    } else {
+        prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
+    }
+
+    const colors = ["#2c3e50", "#f39c12", "#16a085", "#d35400", "#8e44ad", "#c0392b", "#27ae60", "#2980b9"];
+    const numSegments = prizes.length;
+    const anglePerSegment = (2 * Math.PI) / numSegments;
+    let currentRotation = 0;
+
+    // رسم العجلة بشكل احترافي ومطابق
+    function drawWheel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < numSegments; i++) {
+            const angle = i * anglePerSegment;
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.beginPath();
+            ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 240, angle, angle + anglePerSegment);
+            ctx.lineTo(250, 250);
+            ctx.fill();
+            ctx.stroke();
+
+            // إضافة النصوص داخل الأقسام
+            ctx.save();
+            ctx.translate(250, 250);
+            ctx.rotate(angle + anglePerSegment / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 16px Tahoma";
+            ctx.fillText(prizes[i], 220, 10);
+            ctx.restore();
+        }
+        
+        // الدائرة المركزية الذهبية
+        ctx.beginPath();
+        ctx.arc(250, 250, 30, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffcc00';
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+    }
+
+    drawWheel();
+
+    // تشغيل تدوير العجلة مع تأثير الصوت الميكانيكي
+    function startSpin() {
+        document.getElementById('spinBtn').disabled = true;
+        
+        // تحديد الجائزة عشوائياً
+        const targetIndex = Math.floor(Math.random() * numSegments);
+        const targetPrize = prizes[targetIndex];
+        
+        // حساب زاوية التوقف الدقيقة
+        const extraRotations = 5 * 360; 
+        const targetAngle = extraRotations + (360 - (targetIndex * (360 / numSegments)) - (180 / numSegments));
+        
+        canvas.style.transform = `rotateX(15deg) rotate(${targetAngle}deg)`;
+        
+        // محاكاة تأثير تكتكة الصوت ميكانيكياً أثناء الدوران
+        let ticks = 0;
+        const tickInterval = setInterval(() => {
+            if(ticks < 30) {
+                tg.HapticFeedback.impactOccurred('light');
+                ticks++;
+            } else {
+                clearInterval(tickInterval);
+            }
+        }, 120);
+
+        // انتهاء الدوران وعرض المفرقعات والنتيجة
+        setTimeout(() => {
+            tg.HapticFeedback.notificationOccurred('success');
+            
+            // تأثير الكونفيتي (المفرقعات الملونة) مثل الفيديو تماماً
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+
+            // إرسال النتيجة للبوت وإغلاق الويب آب تلقائياً بعد ثانيتين
+            setTimeout(() => {
+                tg.sendData(JSON.stringify({
+                    prize: targetPrize,
+                    mode: mode,
+                    amount: parseInt(targetPrize)
+                }));
+                tg.close();
+            }, 2000);
+
+        }, 4000);
+    }
+</script>
+</body>
+</html>
