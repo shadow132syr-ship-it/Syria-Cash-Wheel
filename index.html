@@ -131,15 +131,17 @@
     <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">🎰 تدوير (300 ليرة)</button>
 
     <script>
+        // تهيئة وتوسيع واجهة التليجرام WebApp
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // قراءة الرصيد الفعلي من معلمات الرابط المتصل بالبوت
+        // جلب الرصيد الممرر من البوت عبر رابط المعلمات
         const urlParams = new URLSearchParams(window.location.search);
         let currentBalance = parseFloat(urlParams.get('balance')) || 0;
         document.getElementById('user-balance').innerText = currentBalance;
 
+        // مصفوفة الرموز والنتيجة المحددة سلفاً (الخسارة)
         const pool = ["🍉", "🍓", "🍒", "7️⃣", "⭐", "🍇", "🍋"];
         const finalLoseLayout = [
             ["🍉", "7️⃣", "🍒"], 
@@ -147,6 +149,7 @@
             ["🍒", "🍉", "🍓"]  
         ];
 
+        // تهيئة بكرات اللعبة بشكل عشوائي مبدئي
         function initReels() {
             for (let i = 1; i <= 3; i++) {
                 const reel = document.getElementById(`reel${i}`);
@@ -160,11 +163,12 @@
         }
         initReels();
 
+        // دالة بدء التدوير ومعالجة الخصم الفوري والإرسال
         function startSpinPro() {
             const btn = document.getElementById('spin-btn');
             const result = document.getElementById('result-text');
 
-            // حماية: التأكد أن رصيد المستخدم يكفي للعب
+            // حماية: التأكد من وجود رصيد كافٍ بالواجهة قبل بدء اللعب
             if (currentBalance < 300) {
                 alert("رصيدك غير كافٍ! تحتاج إلى 300 ليرة على الأقل للعب.");
                 return;
@@ -173,25 +177,28 @@
             btn.disabled = true;
             result.style.display = "none";
 
-            // خصم الـ 300 ليرة فوراً بالواجهة أمام عين المستخدم للحماس والواقعية
+            // خصم 300 ليرة فورياً من الواجهة أمام المستخدم
             currentBalance -= 300;
             document.getElementById('user-balance').innerText = currentBalance;
 
-            // إطلاق أنيميشن الدوران السلس
+            // تشغيل حركة البكرات بتوقيتات متفاوتة لإعطاء حماس أكبر
             spinReel(1, finalLoseLayout[0], 2000);
             spinReel(2, finalLoseLayout[1], 2500);
             spinReel(3, finalLoseLayout[2], 3000);
 
-            // إنهاء اللعبة وإرسال إشعار الخصم الفعلي للبوت
+            // عند انتهاء حركة البكرة الأخيرة (بعد 3.1 ثانية)
             setTimeout(() => {
                 result.style.display = "block";
+                
+                // انتظار ثانية ونصف ليشاهد النتيجة ثم إرسال البيانات للبوت وإغلاق الواجهة
                 setTimeout(() => {
-                    tg.sendData(JSON.stringify({action: "lose_slot_zero"}));
-                    tg.close();
-                }, 1800);
+                    const dataToSend = JSON.stringify({ action: "lose_slot_zero" });
+                    tg.sendData(dataToSend);
+                }, 1500);
             }, 3100);
         }
 
+        // دالة تحريك البكرة الفردية وتثبيتها على الرموز المطلوبة
         function spinReel(reelNum, finalThree, duration) {
             const reel = document.getElementById(`reel${reelNum}`);
             reel.style.transition = 'none';
