@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>سوريا كاش - العجلة الملكية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوريا كاش - العجلة الملكية 3D</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* حاوية دائرية مثالية بدون تمطيط أو ميلان يمرض العين */
         .wheel-wrapper {
             position: relative;
             width: 88vw;
@@ -31,7 +30,6 @@
             margin-bottom: 30px;
         }
 
-        /* إطار الكروم الفضي واللمعة اللامعة مثل الفيديو تماماً */
         .outer-border {
             width: 100%;
             height: 100%;
@@ -63,10 +61,9 @@
             height: 100%;
             border-radius: 50%;
             transform: rotate(0deg);
-            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); /* دوران سلس وسريع */
+            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* المؤشر الفخم من الأعلى (الوتد الذهبي المتأرجح) */
         .pointer {
             position: absolute;
             top: -12px;
@@ -81,7 +78,6 @@
             transform-origin: 50% 0%;
         }
 
-        /* حركة ضربة المؤشر الخفيفة أثناء التكتكة */
         @keyframes hit-tick {
             0% { transform: translateX(-50%) rotate(0deg); }
             50% { transform: translateX(-50%) rotate(-15deg); }
@@ -92,7 +88,6 @@
             animation: hit-tick 0.15s ease;
         }
 
-        /* زر التدوير الذهبي النظيف */
         .btn-spin {
             background: linear-gradient(180deg, #ffcc00 0%, #d4af37 100%);
             color: #0b0e14;
@@ -174,7 +169,6 @@
         prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
     }
 
-    // ألوان ملكية فخمة ومتناسقة (أزرق غامق، بنفسجي، رمادي غامق، وتدرجات نيوت)
     const colors = ["#1a1f2c", "#2c3e50", "#1e272c", "#34495e", "#161b22", "#243342", "#2c3e50", "#11161b"];
     const numSeg = prizes.length;
     const segAngle = (2 * Math.PI) / numSeg;
@@ -185,33 +179,27 @@
         
         for (let i = 0; i < numSeg; i++) {
             const angle = i * segAngle;
-            
-            // رسم القسم
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
             ctx.moveTo(250, 250);
             ctx.arc(250, 250, 240, angle, angle + segAngle);
             ctx.fill();
             
-            // خطوط الفواصل الذهبية النظيفة بين الأقسام
             ctx.strokeStyle = "rgba(255, 204, 0, 0.3)";
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // كتابة النص بشكل ملكي مقروء ومحاذي تماماً
             ctx.save();
             ctx.translate(250, 250);
             ctx.rotate(angle + segAngle / 2);
             ctx.textAlign = "right";
             ctx.fillStyle = "#ffffff";
-            // نصوص ذهبية للجوائز العالية
             if(prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة") ctx.fillStyle = "#ffcc00";
             ctx.font = "bold 16px Arial";
             ctx.fillText(prizes[i], 215, 6);
             ctx.restore();
         }
 
-        // الغطاء المركزي اللامع (الزر الذهبي الداخلي بالمنتصف)
         ctx.beginPath();
         ctx.arc(250, 250, 32, 0, 2 * Math.PI);
         ctx.fillStyle = '#ffcc00';
@@ -229,31 +217,26 @@
         const targetIdx = Math.floor(Math.random() * numSeg);
         const targetPrize = prizes[targetIdx];
 
-        // 6 لفات كاملة سريعة ونظيفة مع زاوية الوقوف الصحيحة
         const rotations = 6 * 360;
         const finalAngleDeg = rotations + (360 - (targetIdx * (360 / numSeg)) - (180 / numSeg));
 
         canvas.style.transform = `rotate(${finalAngleDeg}deg)`;
 
-        // معالجة صوت التكتكة الميكانيكي واهتزاز المؤشر العلوي مع حركة الأقسام
         let ticksTriggered = 0;
         const totalTicksEstimated = 48; 
-        let tickDelay = 60; // سرعة تكتكة بدئية ممتازة
+        let tickDelay = 60;
 
         function doTick() {
             if (ticksTriggered < totalTicksEstimated) {
-                // تفعيل أنيميشن ضرب المؤشر
                 pin.classList.remove('hit');
-                void pin.offsetWidth; // ريست للأنيميشن
+                void pin.offsetWidth; 
                 pin.classList.add('hit');
 
-                // تشغيل الصوت والهزاز
                 sndTick.currentTime = 0;
                 sndTick.play().catch(()=>{});
                 tg.HapticFeedback.impactOccurred('light');
 
                 ticksTriggered++;
-                // إبطاء التكتكة تدريجياً بالتزامن مع توقف العجلة الفخم
                 tickDelay += (ticksTriggered * 4);
                 setTimeout(doTick, tickDelay);
             }
@@ -261,12 +244,10 @@
         
         setTimeout(doTick, 150);
 
-        // انتهاء الدوران، الاحتفال، وإرسال البيانات
         setTimeout(() => {
             sndWin.play().catch(()=>{});
             tg.HapticFeedback.notificationOccurred('success');
 
-            // إطلاق المفرقعات والكونفيتي الجانبي الفخم من اليمين واليسار (مثل الألعاب النارية)
             var duration = 2.5 * 1000;
             var end = Date.now() + duration;
 
@@ -276,7 +257,6 @@
                 if (Date.now() < end) { requestAnimationFrame(frame); }
             }());
 
-            // العودة للبوت
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
                     prize: targetPrize,
@@ -286,7 +266,7 @@
                 tg.close();
             }, 2200);
 
-        }, 5000); // 5 ثوانٍ دوران مشوق وممتاز
+        }, 5000); 
     }
 </script>
 </body>
