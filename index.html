@@ -3,59 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3x3 Slot Game</title>
+    <title>3x3 Slot Game Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            background-color: #111;
+            background-color: #0d0d0d;
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
             direction: rtl;
+            overflow: hidden;
         }
-        h1 { font-size: 24px; margin-bottom: 30px; }
+        h1 { 
+            font-size: 26px; 
+            margin-bottom: 25px; 
+            color: #f39c12;
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
         .slot-container {
             display: flex;
             justify-content: center;
             gap: 15px;
-            max-width: 400px;
+            max-width: 360px;
             margin: 0 auto;
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        .reel {
+        .reel-box {
             background: #222;
             border: 2px solid #444;
             border-radius: 10px;
             width: 90px;
-            height: 280px;
+            height: 270px; /* يعرض 3 عناصر بالملّي */
+            overflow: hidden;
+            position: relative;
+        }
+        .reel {
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            transition: top 0s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .symbol {
+            height: 90px;
+            display: flex;
+            justify-content: center;
             align-items: center;
-            font-size: 35px;
-            overflow: hidden;
+            font-size: 40px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #2d2d2d;
         }
         .btn-spin {
-            background: #4caf50;
+            background: linear-gradient(180deg, #27ae60, #2ecc71);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 18px;
+            padding: 15px 0;
+            font-size: 20px;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             margin-top: 30px;
-            width: 80%;
-            max-width: 300px;
+            width: 85%;
+            max-width: 320px;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            transition: all 0.2s ease;
         }
-        .btn-spin:disabled { background: #555; }
+        .btn-spin:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(46, 204, 113, 0.4);
+        }
+        .btn-spin:disabled { 
+            background: #555; 
+            box-shadow: none;
+            cursor: not-allowed;
+        }
         .result {
             margin-top: 25px;
-            font-size: 20px;
-            color: #ff4444;
+            font-size: 22px;
+            color: #e74c3c;
             font-weight: bold;
             display: none;
+            animation: blink 0.5s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.6; }
         }
     </style>
 </head>
@@ -64,51 +103,92 @@
     <h1>3×3 Slot Game</h1>
 
     <div class="slot-container">
-        <div class="reel" id="reel1"><div>🍉</div><div>7️⃣</div><div>🍒</div></div>
-        <div class="reel" id="reel2"><div>🍓</div><div>⭐</div><div>🍉</div></div>
-        <div class="reel" id="reel3"><div>🍒</div><div>🍉</div><div>🍓</div></div>
+        <div class="reel-box">
+            <div class="reel" id="reel1"></div>
+        </div>
+        <div class="reel-box">
+            <div class="reel" id="reel2"></div>
+        </div>
+        <div class="reel-box">
+            <div class="reel" id="reel3"></div>
+        </div>
     </div>
 
     <div class="result" id="result-text">❌ خسرت حظاً أوفر</div>
 
-    <button class="btn-spin" id="spin-btn" onclick="startSpin()">تدوير 🎰</button>
+    <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">تدوير 🎰</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // لفتح الواجهة بكامل الشاشة
+        tg.expand();
 
-        function startSpin() {
+        // الرموز المتاحة
+        const pool = ["🍉", "🍓", "🍒", "7️⃣", "⭐", "🍇", "🍋"];
+        
+        // المصفوفة الخاسرة المطلوبة بالملّي للتوقف عليها في النهاية
+        const finalLoseLayout = [
+            ["🍉", "7️⃣", "🍒"], // العمود الأول (الوسط 7)
+            ["🍓", "⭐", "🍉"], // العمود الثاني (الوسط نجمة)
+            ["🍒", "🍉", "🍓"]  // العمود الثالث (الوسط بطيخ)
+        ];
+
+        // بناء بكرات طويلة وهمية لتعطي إيحاء الدوران اللانهائي الاحترافي
+        function initReels() {
+            for (let i = 1; i <= 3; i++) {
+                const reel = document.getElementById(`reel${i}`);
+                let html = '';
+                // نكرر الرموز بشكل عشوائي 10 مرات لعمل شريط طويل جداً يدور هبوطاً
+                for (let j = 0; j < 30; j++) {
+                    const randomSymbol = pool[Math.floor(Math.random() * pool.length)];
+                    html += `<div class="symbol">${randomSymbol}</div>`;
+                }
+                reel.innerHTML = html;
+            }
+        }
+
+        initReels();
+
+        function startSpinPro() {
             const btn = document.getElementById('spin-btn');
             const result = document.getElementById('result-text');
             btn.disabled = true;
             result.style.display = "none";
 
-            // تأثير لفت الماكينة السريع عبر الـ JavaScript
-            let count = 0;
-            const symbols = ["🍉", "🍓", "🍒", "7️⃣", "⭐"];
-            const interval = setInterval(() => {
-                document.getElementById('reel1').children[1].innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                document.getElementById('reel2').children[1].innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                document.getElementById('reel3').children[1].innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                count++;
-                if (count > 15) {
-                    clearInterval(interval);
-                    
-                    // إيقاف الحركة على مصفوفة خاسرة 100% بالملّي
-                    document.getElementById('reel1').innerHTML = "<div>🍉</div><div>7️⃣</div><div>🍒</div>";
-                    document.getElementById('reel2').innerHTML = "<div>🍓</div><div>⭐</div><div>🍉</div>";
-                    document.getElementById('reel3').innerHTML = "<div>🍒</div><div>🍉</div><div>🍓</div>";
-                    
-                    result.style.display = "block";
+            // تدوير كل بكرة بوقت توقف مختلف تدريجياً (تأثير احترافي)
+            spinReel(1, finalLoseLayout[0], 2000);
+            spinReel(2, finalLoseLayout[1], 2600);
+            spinReel(3, finalLoseLayout[2], 3200);
 
-                    // إرسال البيانات للبوت لتسجيل الخسارة الحتمية وتصفير الحساب فوراً
-                    setTimeout(() => {
-                        tg.sendData(JSON.stringify({action: "lose_slot_zero"}));
-                        tg.close();
-                    }, 2000);
-                }
-            }, 100);
+            // تصفير الحساب وإغلاق الواجهة بعد توقف آخر بكرة
+            setTimeout(() => {
+                result.style.display = "block";
+                setTimeout(() => {
+                    tg.sendData(JSON.stringify({action: "lose_slot_zero"}));
+                    tg.close();
+                }, 2000);
+            }, 3300);
+        }
+
+        function spinReel(reelNum, finalThree, duration) {
+            const reel = document.getElementById(`reel${reelNum}`);
+            
+            // إعادة البكرة للأعلى بدون أن يلاحظ المستخدم
+            reel.style.transition = 'none';
+            reel.style.top = '0px';
+            
+            // حقن المصفوفة الخاسرة الحتمية في نهاية شريط الدوران الممتد
+            const symbols = reel.children;
+            symbols[27].innerText = finalThree[0]; // العنصر العلوي
+            symbols[28].innerText = finalThree[1]; // العنصر الأوسط
+            symbols[29].innerText = finalThree[2]; // العنصر السفلي
+
+            // تشغيل تأثير اللف الاحترافي المتباطئ تدريجياً (Ease-Out) بعد أجزاء من الثانية
+            setTimeout(() => {
+                reel.style.transition = `top ${duration}ms cubic-bezier(0.1, 0.85, 0.25, 1)`;
+                // التحرك هبوطاً بمقدار مسافة الشريط ليقف على العناصر الثلاثة الأخيرة بالملّي
+                reel.style.top = '-2160px'; 
+            }, 50);
         }
     </script>
 </body>
