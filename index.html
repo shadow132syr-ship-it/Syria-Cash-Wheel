@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عجلة الحظ</title>
+    <title>عجلة الحظ الاحترافية V2</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -11,9 +11,9 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(180deg, #101c2c 0%, #080e18 100%);
+            background: #0f172a;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,169 +22,82 @@
             overflow: hidden;
         }
 
-        .wheel-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            margin-bottom: 40px;
-            perspective: 1000px; /* تأثير الـ 3D الخفيف */
+        /* حاوية المنظور الـ 3D لتميل العجلة مثل الفيديو */
+        .perspective-container {
+            perspective: 1000px;
+            perspective-origin: center 30%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
         }
 
-        /* الإطار المضيء الخارجي */
-        .wheel-outer-ring {
+        .wheel-wrapper {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            /* تمييل العجلة على محور X لتبدو مسطحة بزاوية احترافية */
+            transform: rotateX(45deg);
+            transform-style: preserve-3d;
+        }
+
+        /* الإطار الخارجي المعدني المضيء */
+        .outer-border {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            box-shadow: 0 0 20px #e2a04e, inset 0 0 15px #e2a04e;
-            border: 8px solid #c98a35;
-            background: #1a2636;
+            background: radial-gradient(circle, #2d3748 60%, #1a202c 100%);
+            border: 12px solid #111827;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.7),
+                0 0 30px rgba(226, 160, 78, 0.4),
+                inset 0 0 20px rgba(0, 0, 0, 0.8);
             box-sizing: border-box;
         }
 
-        /* العجلة الدوارة الفعلية */
-        #wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1); /* حركة دوران ناعمة تبطئ بالنهاية */
-            background: conic-gradient(
-                #ff4b4b 0deg 45deg, #ff9233 45deg 90deg, 
-                #ffcd38 90deg 135deg, #4ce27a 135deg 180deg,
-                #38cdff 180deg 225deg, #3d6aff 225deg 270deg,
-                #9b3dff 270deg 315deg, #ff3db8 315deg 360deg
-            );
-        }
-
-        /* المؤشر السهم في الأعلى */
-        .pointer {
+        /* العجلة الدوارة الفخمة */
+        .wheel-plate {
             position: absolute;
-            top: -15px;
+            top: 6px;
+            left: 6px;
+            width: calc(100% - 12px);
+            height: calc(100% - 12px);
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #2563eb 0deg 45deg,   #3b82f6 45deg 90deg,
+                #16a34a 90deg 135deg,  #22c55e 135deg 180deg,
+                #dc2626 180deg 225deg, #ef4444 225deg 270deg,
+                #ca8a04 270deg 315deg, #eab308 315deg 360deg
+            );
+            border: 4px solid #4b5563;
+            box-sizing: border-box;
+            transition: transform 5s cubic-bezier(0.2, 0.8, 0.1, 1);
+            overflow: hidden;
+        }
+
+        /* النقاط أو المسامير المضيئة حول الإطار */
+        .led-light {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #fff, 0 0 15px #eab308;
+        }
+
+        /* السنتر الذهبي في منتصف العجلة */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #ffffff;
-            filter: drop-shadow(0px 4px 5px rgba(0,0,0,0.5));
-            z-index: 10;
-        }
-
-        /* الزر السفلي للتدمير */
-        .spin-btn {
-            background: linear-gradient(180deg, #ffd043 0%, #ff9e00 100%);
-            border: none;
-            padding: 15px 50px;
-            color: #101c2c;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255, 158, 0, 0.4);
-            transition: all 0.2s;
-        }
-
-        .spin-btn:active {
-            transform: scale(0.95);
-        }
-
-        .spin-btn:disabled {
-            background: #4a5568;
-            color: #a0aec0;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <div class="wheel-outer-ring">
-            <canvas id="wheel" width="320" height="320"></canvas>
-        </div>
-    </div>
-
-    <button class="spin-btn" id="spinBtn" onclick="startSpin()">لديك تدويرة مجانية</button>
-
-    <script>
-        // إعدادات تليجرام
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // فتح الشاشة بالكامل
-
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-
-        // قائمة الجوائز الخاصة بك
-        const prizes = [
-            "500 ليرة", "زيادة 10%", "20,000 ليرة", "حساب ممتاز",
-            "100 ليرة", "تذكرة سحب", "مفاجأة نقدية", "حظ أوفر"
-        ];
-        
-        const numSegments = prizes.length;
-        const segmentAngle = 360 / numSegments;
-        let currentRotation = 0;
-        let isSpinning = false;
-
-        // رسم محتويات العجلة (الأسماء والخطوط الفاصلة)
-        function drawWheel() {
-            const radius = canvas.width / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            for (let i = 0; i < numSegments; i++) {
-                const angle = (i * segmentAngle) * Math.PI / 180;
-                ctx.save();
-                ctx.translate(radius, radius);
-                ctx.rotate(angle + (segmentAngle / 2) * Math.PI / 180);
+            transform: translate(-50%, -50%) translateZ(10px);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #fef08a 0%, #ca8a04 100%);
+            border-radius: 50%;
+            border: 3px solid #facc15;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index:
                 
-                // كتابة النص داخل القسم
-                ctx.textAlign = "right";
-                ctx.textColor = "#ffffff";
-                ctx.font = "bold 14px sans-serif";
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText(prizes[i], radius - 30, 5);
-                ctx.restore();
-            }
-        }
-
-        drawWheel();
-
-        function startSpin() {
-            if (isSpinning) return;
-            isSpinning = true;
-            spinBtn.disabled = true;
-
-            // تحديد جائزة عشوائية من الـ Backend أو حسابها هنا
-            const prizeIndex = Math.floor(Math.random() * numSegments);
-            
-            // حساب زاوية الدوران (مثلاً 5 دورات كاملة + زاوية الجائزة المستهدفة)
-            const targetAngle = (numSegments - prizeIndex) * segmentAngle - (segmentAngle / 2);
-            const totalDegrees = 1800 + targetAngle; // 1800 تعني 5 دورات كاملة لمنح تأثير السرعة المبطئة
-
-            canvas.style.transform = `rotate(${totalDegrees}deg)`;
-
-            // عند انتهاء حركة الدوران (بعد 4 ثوانٍ حسب الـ CSS)
-            setTimeout(() => {
-                // تفعيل تأثير المفرقعات الاحتفالية كالفيديو تماماً
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 }
-                });
-
-                // إرسال النتيجة إلى البوت عبر التليجرام وإغلاق النافذة
-                setTimeout(() => {
-                    tg.sendData(JSON.stringify({
-                        prize: prizes[prizeIndex],
-                        index: prizeIndex
-                    }));
-                    tg.close();
-                }, 2000); // الانتظار ثانيتين لرؤية الاحتفال ثم الإغلاق
-                
-            }, 4000);
-        }
-    </script>
-</body>
-</html>
