@@ -11,7 +11,7 @@
         body {
             margin: 0;
             padding: 0;
-            background: #0f172a; /* خلفية داكنة فخمة متل الفيديو */
+            background: #0f172a; 
             color: white;
             font-family: 'Segoe UI', sans-serif;
             display: flex;
@@ -22,7 +22,6 @@
             overflow: hidden;
         }
 
-        /* حاوية المنظور المائل المأخوذ من الفيديو */
         .perspective-container {
             perspective: 1000px;
             perspective-origin: center 35%;
@@ -36,11 +35,10 @@
             position: relative;
             width: 320px;
             height: 320px;
-            transform: rotateX(40deg); /* التمييل الاحترافي */
+            transform: rotateX(40deg); 
             transform-style: preserve-3d;
         }
 
-        /* المؤشر الفخم في الأعلى */
         .pointer {
             position: absolute;
             top: -20px;
@@ -50,12 +48,11 @@
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 30px solid #ef4444; /* سهم أحمر */
+            border-top: 30px solid #ef4444; 
             filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
             z-index: 99;
         }
 
-        /* الإطار الخارجي واللمبات (صورة أو ستايل دائري مع توهج) */
         .outer-ring {
             position: absolute;
             width: 100%;
@@ -68,7 +65,6 @@
             z-index: 1;
         }
 
-        /* قرص العجلة الدوار - هنا نضع رابط صورة العجلة المقسمة جاهزة */
         .wheel-plate {
             position: absolute;
             top: 8px;
@@ -76,14 +72,12 @@
             width: calc(100% - 16px);
             height: calc(100% - 16px);
             border-radius: 50%;
-            /* استبدل هذا الرابط برابط صورة العجلة الخاصة بك المصممة بالجوائز */
+            /* تم استبدال الرابط برابط لعجلة مصممة وجاهزة من على الإنترنت */
             background: url('https://i.imgur.com/vDxF667.png') center center / cover no-repeat; 
-            background-color: #2563eb; /* لون احتياطي ليظهر لو الصورة تأخرت */
             transition: transform 5s cubic-bezier(0.15, 0.85, 0.1, 1);
             z-index: 2;
         }
 
-        /* السنتر الذهبي المثبت بالنصف */
         .wheel-center {
             position: absolute;
             top: 50%;
@@ -98,7 +92,6 @@
             z-index: 10;
         }
 
-        /* زر التدوير */
         .spin-btn {
             background: linear-gradient(180deg, #ffd043 0%, #ff9e00 100%);
             border: none;
@@ -123,7 +116,7 @@
 <body>
 
     <div class="perspective-container">
-                <div class="wheel-wrapper">
+        <div class="wheel-wrapper">
             <div class="pointer"></div>
             <div class="outer-ring"></div>
             <div class="wheel-plate" id="wheelPlate"></div>
@@ -137,7 +130,7 @@
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
 
-        // أسماء الجوائز مرتبة حسب اتجاه عقارب الساعة في صورتك
+        // ترتيب الجوائز حسب اتجاه عقارب الساعة في صورتك الجديدة
         const prizes = [
             "حظ أوفر", "500 ليرة", "زيادة 10%", "20,000 ليرة",
             "حساب ممتاز", "100 ليرة", "تذكرة سحب", "مفاجأة نقدية"
@@ -153,17 +146,14 @@
             const wheelPlate = document.getElementById('wheelPlate');
             spinBtn.disabled = true;
 
-            // تحديد الجائزة
             const targetIndex = Math.floor(Math.random() * prizes.length);
             
-            // الحسابات الدقيقة لزاوية الوقوف (8 أقسام = 45 درجة لكل قسم)
             const degreesPerSegment = 45;
             const targetAngle = (prizes.length - targetIndex) * degreesPerSegment - 22.5;
-            const totalRotation = 2160 + targetAngle; // 6 لفات كاملة وتوقف ناعم
+            const totalRotation = 2160 + targetAngle; 
 
             wheelPlate.style.transform = `rotate(${totalRotation}deg)`;
 
-            // الاحتفال والمفرقعات بعد انتهاء الدوران (5 ثوانٍ)
             setTimeout(() => {
                 confetti({
                     particleCount: 150,
@@ -171,7 +161,6 @@
                     origin: { y: 0.6 }
                 });
 
-                // إرجاع النتيجة وإغلاق البوت
                 setTimeout(() => {
                     if (tg && tg.sendData) {
                         tg.sendData(JSON.stringify({
