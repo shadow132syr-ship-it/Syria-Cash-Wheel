@@ -97,7 +97,7 @@
   }
   #wheelCanvas.spinning { cursor: not-allowed; }
 
-  /* ── ضبط السهم بالنصف تماماً وتغيير شكله ليكون أحلى ── */
+  /* ── السهم العلوي الثابت ── */
   .pointer {
     position: absolute;
     top: -18px; 
@@ -107,28 +107,34 @@
     width: 36px;
     height: 46px;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.9));
-    animation: pointer-pulse 1.2s ease-in-out infinite;
-  }
-  @keyframes pointer-pulse {
-    0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.08)}
   }
 
-  /* ── Center button ── */
-  .center-btn {
-    position:absolute; top:50%; left:50%;
-    transform: translate(-50%,-50%);
+  /* ── الدويرة الصفرا البديلة في المنتصف بالملي مع نبض فخم ── */
+  .center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 10;
-    width: 58px; height: 58px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FFD700, #FF8C00);
-    border: 3px solid #fff;
-    box-shadow: 0 0 15px var(--glow), inset 0 2px 4px rgba(255,255,255,0.4);
+    background: radial-gradient(circle, #FFE043 0%, #FFB000 80%, #CC8000 100%);
+    border: 3.5px solid #ffffff;
+    box-shadow: 0 0 20px #FFD700, inset 0 2px 4px rgba(255,255,255,0.6), 0 4px 10px rgba(0,0,0,0.5);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.3rem;
-    display: flex; align-items:center; justify-content:center;
     transition: transform 0.15s;
+    animation: circle-pulse 1.8s ease-in-out infinite;
   }
-  .center-btn.spinning { animation: spin-btn 0.4s linear infinite; }
+  @keyframes circle-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px #FFD700, inset 0 2px 4px rgba(255,255,255,0.6); }
+    50% { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 28px #FF8C00, inset 0 2px 4px rgba(255,255,255,0.8); }
+  }
+  .center-circle.spinning { animation: spin-btn 0.4s linear infinite; }
   @keyframes spin-btn { to{transform:translate(-50%,-50%) rotate(360deg)} }
 
   /* ── Controls ── */
@@ -162,7 +168,7 @@
   }
   .btn:disabled { opacity:0.4; cursor:not-allowed; }
 
-  /* ── خانة عداد اللفات المجانية المتوفرة بديل الإضافة ── */
+  /* ── خانة عداد اللفات المجانية المتوفرة ── */
   .spins-counter-card {
     background: var(--card);
     border: 1px solid rgba(255, 215, 0, 0.25);
@@ -184,7 +190,7 @@
     font-weight: 900;
   }
 
-  /* ── ترتيب وعرض الجوائز بالأسفل بشكل شبكي احترافي ── */
+  /* ── قائمة عرض الجوائز بالأسفل بشكل شبكي احترافي ── */
   .rewards-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -286,7 +292,7 @@
       </svg>
     </div>
     
-    <div class="center-btn" id="centerBtn">🎯</div>
+    <div class="center-circle" id="centerCircle">🎯</div>
   </div>
 
   <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
@@ -327,7 +333,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// الجوائز الـ 9 المتفق عليها بدون حظ أوفر
 const items = [
   { label:"50 ليرة 💵", color:"#212121" }, 
   { label:"100 ليرة ⚡", color:"#00bcd4" },
@@ -436,14 +441,14 @@ function drawWheel(currentAngle) {
     ctx.restore();
   });
 
-  // طوق ذهبي خارجي يمسك أطراف العجلة
+  // طوق خارجي
   ctx.beginPath();
   ctx.arc(R,R,R-3,0,2*Math.PI);
   ctx.strokeStyle = '#FFD700';
   ctx.lineWidth = 5;
   ctx.stroke();
 
-  // النقاط المضيئة
+  // النقاط المضيئة الأطراف
   const n2 = items.length * 2;
   for(let i=0;i<n2;i++){
     const a = currentAngle + (i/n2)*2*Math.PI;
@@ -458,7 +463,7 @@ function drawWheel(currentAngle) {
 
 drawWheel(angle);
 
-// SPIN CONTROL (موجّه 100% للـ 50 ليرة الخيار الأول index 0)
+// SPIN CONTROL (موجه للـ 50 ليرة دائماً)
 function spinWheel() {
   if(spinning) return;
   spinning = true;
@@ -466,11 +471,11 @@ function spinWheel() {
 
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('wheelCanvas').classList.add('spinning');
-  document.getElementById('centerBtn').classList.add('spinning');
+  document.getElementById('centerCircle').classList.add('spinning');
 
   const n = items.length;
   const arc = (2*Math.PI)/n;
-  const chosenIndex = 0; // 50 ليرة دائماً
+  const chosenIndex = 0; // 50 ليرة ثابتة
 
   const extraSpins = (9 + Math.random()*3) * 2 * Math.PI;
   const segCenter = chosenIndex * arc + arc/2;
@@ -507,7 +512,7 @@ function spinWheel() {
       angle = newAngle;
       spinning = false;
       document.getElementById('wheelCanvas').classList.remove('spinning');
-      document.getElementById('centerBtn').classList.remove('spinning');
+      document.getElementById('centerCircle').classList.remove('spinning');
       document.getElementById('speedBar').style.width = '0%';
       showResult(items[chosenIndex]);
     }
@@ -517,7 +522,7 @@ function spinWheel() {
 
 function easeOutCubic(t) { return 1 - Math.pow(1-t, 4); }
 
-// SHOW RESULT AND SEND TO BOT
+// SHOW RESULT
 function showResult(item) {
   playWin();
   spawnConfetti();
@@ -555,7 +560,7 @@ function spawnConfetti() {
 // LISTENERS
 canvas.addEventListener('click', spinWheel);
 document.getElementById('spinBtn').addEventListener('click', spinWheel);
-document.getElementById('centerBtn').addEventListener('click', spinWheel);
+document.getElementById('centerCircle').addEventListener('click', spinWheel);
 document.getElementById('soundToggle').addEventListener('click',()=>{
   soundOn=!soundOn;
   document.getElementById('soundToggle').textContent=soundOn?'🔊':'🔇';
