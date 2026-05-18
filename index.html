@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عجلة سوريا كاش الاحترافية</title>
+    <title>عجلة سوريا كاش</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -11,9 +11,9 @@
         body {
             margin: 0;
             padding: 0;
-            background: #09101a;
+            background: #0f172a; /* خلفية داكنة فخمة متل الفيديو */
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,118 +22,68 @@
             overflow: hidden;
         }
 
-        /* حاوية المنظور ثلاثي الأبعاد لمنح العجلة الانبطاح مثل الفيديو */
+        /* حاوية المنظور المائل المأخوذ من الفيديو */
         .perspective-container {
-            perspective: 800px;
-            perspective-origin: center 40%;
+            perspective: 1000px;
+            perspective-origin: center 35%;
             width: 100%;
             display: flex;
             justify-content: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
 
         .wheel-wrapper {
             position: relative;
-            width: 340px;
-            height: 340px;
-            transform: rotateX(35deg); /* تمييل احترافي متل الفيديو تماماً */
+            width: 320px;
+            height: 320px;
+            transform: rotateX(40deg); /* التمييل الاحترافي */
             transform-style: preserve-3d;
         }
 
-        /* السهم أو المؤشر الذي يتفاعل مع التدوير */
-        .pointer-3d {
+        /* المؤشر الفخم في الأعلى */
+        .pointer {
             position: absolute;
-            top: -15px;
+            top: -20px;
             left: 50%;
-            transform: translateX(-50%) translateZ(20px);
+            transform: translateX(-50%) translateZ(30px);
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 30px solid #ff4747;
-            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.6));
-            z-index: 100;
+            border-top: 30px solid #ef4444; /* سهم أحمر */
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
+            z-index: 99;
         }
 
-        /* الإطار الخارجي الرمادي الغامق الثابت ومحاط باللمبات */
-        .outer-border {
+        /* الإطار الخارجي واللمبات (صورة أو ستايل دائري مع توهج) */
+        .outer-ring {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle, #1e293b 60%, #0f172a 100%);
-            border: 10px solid #111827;
-            box-shadow: 
-                0 15px 30px rgba(0, 0, 0, 0.7),
-                0 0 20px rgba(234, 179, 8, 0.2),
-                inset 0 0 15px rgba(0, 0, 0, 0.8);
+            border: 10px solid #1e293b;
+            box-shadow: 0 0 25px rgba(234, 179, 8, 0.5), inset 0 0 20px rgba(0,0,0,0.8);
+            background: #0f172a;
             box-sizing: border-box;
             z-index: 1;
         }
 
-        /* اللمبات المضيئة المتوزعة على الإطار من الفيديو */
-        .led-light {
+        /* قرص العجلة الدوار - هنا نضع رابط صورة العجلة المقسمة جاهزة */
+        .wheel-plate {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #fff;
+            top: 8px;
+            left: 8px;
+            width: calc(100% - 16px);
+            height: calc(100% - 16px);
             border-radius: 50%;
-            box-shadow: 0 0 8px #fff, 0 0 12px #eab308;
+            /* استبدل هذا الرابط برابط صورة العجلة الخاصة بك المصممة بالجوائز */
+            background: url('https://i.imgur.com/vDxF667.png') center center / cover no-repeat; 
+            background-color: #2563eb; /* لون احتياطي ليظهر لو الصورة تأخرت */
+            transition: transform 5s cubic-bezier(0.15, 0.85, 0.1, 1);
             z-index: 2;
         }
 
-        /* قرص العجلة الدوار الفعلي */
-        .wheel-plate {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: calc(100% - 20px);
-            border-radius: 50%;
-            overflow: hidden;
-            transition: transform 5s cubic-bezier(0.1, 0.75, 0.1, 1);
-            z-index: 3;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        /* تقسيم العجلة إلى مثلثات متساوية */
-        .segment {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            top: 0;
-            right: 0;
-            transform-origin: 0% 100%;
-            /* قص كل عنصر ليصبح مثلثاً بزاوية 45 درجة (لـ 8 جوائز) */
-            clip-path: polygon(0 100%, 100% 100%, 100% 0);
-        }
-
-        /* محاذاة نصوص الجوائز داخل المثلثات بشكل عمودي واحترافي */
-        .segment-text {
-            position: absolute;
-            top: 40%;
-            left: 35%;
-            width: 100px;
-            transform: rotate(67deg); /* لضبط النص مائلاً في السنتر */
-            text-align: center;
-            font-weight: bold;
-            font-size: 13px;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
-            white-space: nowrap;
-        }
-
-        /* ألوان فخمة متناوبة للقطع */
-        .segment:nth-child(1) { background: linear-gradient(135deg, #1d4ed8, #3b82f6); transform: rotate(0deg); }
-        .segment:nth-child(2) { background: linear-gradient(135deg, #b91c1c, #ef4444); transform: rotate(45deg); }
-        .segment:nth-child(3) { background: linear-gradient(135deg, #047857, #10b981); transform: rotate(90deg); }
-        .segment:nth-child(4) { background: linear-gradient(135deg, #a16207, #eab308); transform: rotate(135deg); }
-        .segment:nth-child(5) { background: linear-gradient(135deg, #6d28d9, #8b5cf6); transform: rotate(180deg); }
-        .segment:nth-child(6) { background: linear-gradient(135deg, #be185d, #ec4899); transform: rotate(225deg); }
-        .segment:nth-child(7) { background: linear-gradient(135deg, #0369a1, #0ea5e9); transform: rotate(270deg); }
-        .segment:nth-child(8) { background: linear-gradient(135deg, #374151, #4b5563); transform: rotate(315deg); }
-
-        /* السنتر الدائري الفضي أو الذهبي في منتصف العجلة */
+        /* السنتر الذهبي المثبت بالنصف */
         .wheel-center {
             position: absolute;
             top: 50%;
@@ -148,26 +98,18 @@
             z-index: 10;
         }
 
-        /* زر التدوير الأنيق بالأسفل */
-        .button-container {
-            z-index: 100;
-        }
-
+        /* زر التدوير */
         .spin-btn {
             background: linear-gradient(180deg, #ffd043 0%, #ff9e00 100%);
             border: none;
-            padding: 14px 60px;
-            color: #09101a;
+            padding: 15px 60px;
+            color: #0f172a;
             font-size: 18px;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 158, 0, 0.4);
+            box-shadow: 0 5px 20px rgba(255, 158, 0, 0.4);
             transition: all 0.2s ease;
-        }
-
-        .spin-btn:active {
-            transform: scale(0.96);
         }
 
         .spin-btn:disabled {
@@ -181,49 +123,21 @@
 <body>
 
     <div class="perspective-container">
-        <div class="wheel-wrapper">
-            <div class="pointer-3d"></div>
-            
-            <div class="outer-border" id="lightsContainer"></div>
-            
-            <div class="wheel-plate" id="wheelPlate">
-                <div class="segment"><div class="segment-text">حظ أوفر</div></div>
-                <div class="segment"><div class="segment-text">500 ليرة</div></div>
-                <div class="segment"><div class="segment-text">زيادة 10%</div></div>
-                <div class="segment"><div class="segment-text">20,000 ليرة</div></div>
-                <div class="segment"><div class="segment-text">حساب ممتاز</div></div>
-                <div class="segment"><div class="segment-text">100 ليرة</div></div>
-                <div class="segment"><div class="segment-text">تذكرة سحب</div></div>
-                <div class="segment"><div class="segment-text">مفاجأة نقدية</div></div>
-            </div>
-            
+                <div class="wheel-wrapper">
+            <div class="pointer"></div>
+            <div class="outer-ring"></div>
+            <div class="wheel-plate" id="wheelPlate"></div>
             <div class="wheel-center"></div>
         </div>
     </div>
 
-    <div class="button-container">
-        <button class="spin-btn" id="spinBtn" onclick="startSpin()">لديك تدويرة مجانية</button>
-    </div>
+    <button class="spin-btn" id="spinBtn" onclick="startSpin()">لديك تدويرة مجانية</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
 
-        // توزيع اللمبات (LED) على الحواف
-        const lightsContainer = document.getElementById('lightsContainer');
-        const totalLights = 16;
-        for (let i = 0; i < totalLights; i++) {
-            const light = document.createElement('div');
-            light.className = 'led-light';
-            const angle = (i * (360 / totalLights)) * Math.PI / 180;
-            const radius = 160; // المسافة من السنتر
-            const x = 170 + radius * Math.cos(angle) - 3;
-            const y = 170 + radius * Math.sin(angle) - 3;
-            light.style.left = `${x}px`;
-            light.style.top = `${y}px`;
-            lightsContainer.appendChild(light);
-        }
-
+        // أسماء الجوائز مرتبة حسب اتجاه عقارب الساعة في صورتك
         const prizes = [
             "حظ أوفر", "500 ليرة", "زيادة 10%", "20,000 ليرة",
             "حساب ممتاز", "100 ليرة", "تذكرة سحب", "مفاجأة نقدية"
@@ -239,28 +153,25 @@
             const wheelPlate = document.getElementById('wheelPlate');
             spinBtn.disabled = true;
 
-            // اختيار الجائزة عشوائياً
+            // تحديد الجائزة
             const targetIndex = Math.floor(Math.random() * prizes.length);
             
-            // حساب زاوية الوقوف الدقيقة (كل جزء 45 درجة)
+            // الحسابات الدقيقة لزاوية الوقوف (8 أقسام = 45 درجة لكل قسم)
             const degreesPerSegment = 45;
-            // إزاحة ليكون المؤشر بمنتصف المثلث تماماً
             const targetAngle = (prizes.length - targetIndex) * degreesPerSegment - 22.5;
-            // 2160 درجة تعني 6 لفات كاملة سريعة ثم التباطؤ الواقعي
-            const totalRotation = 2160 + targetAngle;
+            const totalRotation = 2160 + targetAngle; // 6 لفات كاملة وتوقف ناعم
 
             wheelPlate.style.transform = `rotate(${totalRotation}deg)`;
 
-            // عند انتهاء الأنيميشن تماماً بعد 5 ثوانٍ
+            // الاحتفال والمفرقعات بعد انتهاء الدوران (5 ثوانٍ)
             setTimeout(() => {
-                // تأثير المفرقعات الاحتفالية متل الفيديو
                 confetti({
-                    particleCount: 120,
-                    spread: 70,
+                    particleCount: 150,
+                    spread: 80,
                     origin: { y: 0.6 }
                 });
 
-                // إرسال البيانات لتليجرام
+                // إرجاع النتيجة وإغلاق البوت
                 setTimeout(() => {
                     if (tg && tg.sendData) {
                         tg.sendData(JSON.stringify({
@@ -269,9 +180,9 @@
                         }));
                     }
                     if (tg) tg.close();
-                }, 2000
-    
-                    }, 5000);
+                }, 2000);
+
+            }, 5000);
         }
     </script>
 </body>
