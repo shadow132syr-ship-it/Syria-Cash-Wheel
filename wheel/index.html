@@ -9,9 +9,8 @@
 <style>
   :root {
     --gold: #FFD700;
-    --gold2: #FFA500;
-    --dark: #0a0a0f;
-    --card: #13131f;
+    --dark: #07070f;
+    --card: #111120;
     --glow: rgba(255,215,0,0.35);
   }
 
@@ -28,236 +27,203 @@
     overflow-x: hidden;
     user-select: none;
     -webkit-user-select: none;
-    padding: 20px 0;
+    padding: 16px 0 24px;
   }
 
-  /* ── Stars background ── */
-  .stars {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  }
+  /* Stars */
+  .stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
   .star {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: #fff;
-    border-radius: 50%;
+    position:absolute; border-radius:50%; background:#fff; opacity:0;
     animation: twinkle var(--d,3s) infinite var(--delay,0s);
-    opacity: 0;
   }
-  @keyframes twinkle {
-    0%,100%{opacity:0} 50%{opacity:var(--op,0.8)}
-  }
+  @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:var(--op,.8)} }
 
-  /* ── Main container ── */
+  /* Container */
   .container {
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 20px;
-    width: 100%;
+    position:relative; z-index:1;
+    display:flex; flex-direction:column;
+    align-items:center; gap:16px; width:100%;
   }
 
   h1 {
-    font-size: clamp(1.6rem,5vw,2.2rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, #FFD700, #FF8C00, #FFD700);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmer 3s linear infinite;
-    background-size: 200%;
+    font-size:clamp(1.5rem,5vw,2rem); font-weight:900;
+    background: linear-gradient(135deg,#FFD700,#FF8C00,#FFD700);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; background-size:200%;
+    animation: shimmer 3s linear infinite; letter-spacing:.5px;
   }
   @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
 
-  /* ── Wheel wrapper ── */
+  /* Wheel wrapper */
   .wheel-wrapper {
-    position: relative;
-    width: min(360px, 90vw);
-    height: min(360px, 90vw);
-    margin-top: 15px;
+    position:relative;
+    width: min(360px, 92vw);
+    height: min(360px, 92vw);
   }
-
-  /* glow ring */
+  /* rainbow glow ring */
   .wheel-wrapper::before {
-    content:'';
-    position:absolute; inset:-12px;
-    border-radius:50%;
-    background: conic-gradient(from 0deg, #FFD700, #FF4500, #9b59b6, #3498db, #2ecc71, #FFD700);
-    animation: spin-glow 8s linear infinite;
-    opacity: 0.4;
-    filter: blur(8px);
+    content:''; position:absolute; inset:-14px; border-radius:50%;
+    background: conic-gradient(from 0deg,
+      #555,#00bcd4,#4caf50,#e67e22,#9c27b0,#e91e63,#3f51b5,#ffeb3b,#673ab7,#555);
+    animation: spin-ring 7s linear infinite;
+    opacity:.5; filter:blur(7px);
   }
-  @keyframes spin-glow { to{transform:rotate(360deg)} }
+  @keyframes spin-ring { to{transform:rotate(360deg)} }
 
-  /* ── Canvas ── */
+  /* Canvas */
   #wheelCanvas {
-    position: relative; z-index:2;
-    border-radius: 50%;
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 0 15px var(--glow));
-    touch-action: none;
+    position:relative; z-index:2; border-radius:50%;
+    width:100%; height:100%; display:block;
+    filter: drop-shadow(0 0 18px rgba(255,215,0,.4));
+    touch-action:none;
   }
-  #wheelCanvas.spinning { cursor: not-allowed; }
 
-  /* ── السهم العلوي الثابت ── */
+  /* Pointer */
   .pointer {
-    position: absolute;
-    top: -18px; 
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    width: 36px;
-    height: 46px;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.9));
+    position:absolute; top:-30px; left:50%;
+    transform:translateX(-50%); z-index:10;
+    filter: drop-shadow(0 0 10px rgba(255,215,0,.9)) drop-shadow(0 4px 10px rgba(0,0,0,.9));
+    animation: ptr-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes ptr-pulse {
+    0%,100%{ transform:translateX(-50%) translateY(0) scale(1); }
+    50%    { transform:translateX(-50%) translateY(-4px) scale(1.1); }
   }
 
-  /* ── الدويرة الصفرا النظيفة بدون السهم الأحمر الغبي ── */
+  /* Center circle */
   .center-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #FFE552 0%, #FFB700 70%, #D67A00 100%);
-    border: 3.5px solid #ffffff;
-    box-shadow: 0 0 22px #FFD700, inset 0 2px 4px rgba(255,255,255,0.7), 0 4px 10px rgba(0,0,0,0.55);
-    cursor: pointer;
-    transition: transform 0.15s;
-    animation: circle-pulse 1.8s ease-in-out infinite;
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%); z-index:10;
+    width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 38% 32%, #FFF8C2 0%, #FFD700 55%, #C47A00 100%);
+    border:3.5px solid #fff;
+    box-shadow: 0 0 22px #FFD700, inset 0 2px 5px rgba(255,255,255,.65), 0 4px 12px rgba(0,0,0,.55);
+    cursor:pointer;
+    animation: cc-pulse 1.8s ease-in-out infinite;
   }
-  @keyframes circle-pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px #FFD700, inset 0 2px 4px rgba(255,255,255,0.6); }
-    50% { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 28px #FF8C00, inset 0 2px 4px rgba(255,255,255,0.8); }
+  @keyframes cc-pulse {
+    0%,100%{ transform:translate(-50%,-50%) scale(1);   box-shadow: 0 0 18px #FFD700, inset 0 2px 5px rgba(255,255,255,.6); }
+    50%    { transform:translate(-50%,-50%) scale(1.07); box-shadow: 0 0 32px #FF8C00, inset 0 2px 5px rgba(255,255,255,.85); }
   }
+  .center-circle.spinning { animation:none; }
 
-  /* ── Controls ── */
-  .controls {
-    display: flex; gap: 12px; justify-content: center; width: 100%;
-  }
-
+  /* Spin button */
   .btn {
-    padding: 11px 40px;
-    border-radius: 50px;
-    border: 2px solid var(--gold);
-    background: transparent;
-    color: var(--gold);
-    font-family: 'Cairo', sans-serif;
-    font-size: 1rem; font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .btn::before {
-    content:''; position:absolute; inset:0;
+    padding:12px 48px; border-radius:50px;
+    border:2px solid var(--gold);
     background: linear-gradient(135deg,#FFD700,#FF8C00);
-    opacity:0; transition: opacity 0.2s;
+    color:#000; font-family:'Cairo',sans-serif;
+    font-size:1.05rem; font-weight:900; cursor:pointer;
+    transition:all .18s;
+    box-shadow: 0 0 18px rgba(255,215,0,.3);
   }
-  .btn:hover { color:#000; }
-  .btn:hover::before { opacity:1; }
-  .btn span { position:relative; z-index:1; }
-  .btn.primary {
-    background: linear-gradient(135deg,#FFD700,#FF8C00);
-    color: #000;
-  }
-  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .btn:hover { transform:scale(1.04); box-shadow: 0 0 30px rgba(255,215,0,.6); }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
 
-  /* ── خانة عداد اللفات المجانية المتوفرة ── */
+  /* Speed bar */
+  .speed-bar-wrap {
+    width:min(280px,80vw); height:6px;
+    background:#1a1a2e; border-radius:50px; overflow:hidden;
+  }
+  .speed-bar {
+    height:100%;
+    background: linear-gradient(90deg,#FFD700,#FF4500);
+    width:0%; transition:width .08s;
+    box-shadow: 0 0 8px rgba(255,150,0,.6);
+  }
+
+  /* Spins counter */
   .spins-counter-card {
-    background: var(--card);
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 16px;
-    padding: 10px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: #fff;
+    background:var(--card);
+    border:1px solid rgba(255,215,0,.22);
+    border-radius:14px; padding:9px 22px;
+    display:flex; align-items:center; gap:10px;
+    font-weight:700; font-size:.9rem; color:#fff;
+    box-shadow: inset 0 0 12px rgba(0,0,0,.5);
   }
   .spins-badge {
-    background: linear-gradient(135deg, #FFD700, #FF8C00);
-    color: #000;
-    padding: 2px 12px;
-    border-radius: 20px;
-    font-weight: 900;
+    background: linear-gradient(135deg,#FFD700,#FF8C00);
+    color:#000; padding:2px 14px;
+    border-radius:20px; font-weight:900;
   }
 
-  /* ── قائمة عرض الجوائز بالأسفل بشكل شبكي احترافي ── */
+  /* Rewards grid */
   .rewards-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    width: min(360px, 92vw);
-    margin-top: 5px;
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:7px; width:min(360px,92vw);
   }
   .reward-box {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 8px 4px;
-    text-align: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    background:var(--card); border-radius:10px;
+    padding:8px 4px; text-align:center;
+    font-size:.74rem; font-weight:700; color:#fff;
+    border:1px solid rgba(255,255,255,.06);
+    border-bottom-width:3px;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+    transition:transform .15s;
   }
+  .reward-box:hover { transform:scale(1.04); }
 
-  /* ── Result overlay ── */
+  /* Result overlay */
   .result-overlay {
-    position: fixed; inset:0; z-index:100;
-    background: rgba(0,0,0,0.85);
+    position:fixed; inset:0; z-index:200;
+    background:rgba(0,0,0,.88);
     display:flex; align-items:center; justify-content:center;
     opacity:0; pointer-events:none;
-    transition: opacity 0.4s;
-    backdrop-filter: blur(8px);
+    transition:opacity .4s;
+    backdrop-filter:blur(10px);
   }
   .result-overlay.show { opacity:1; pointer-events:all; }
-
   .result-card {
-    background: var(--card);
-    border: 2px solid var(--gold);
-    border-radius: 24px;
-    padding: 35px 40px;
-    text-align: center;
-    box-shadow: 0 0 50px var(--glow);
-    transform: scale(0.7);
-    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
-    max-width: 85vw;
+    background:var(--card); border:2px solid var(--gold);
+    border-radius:26px; padding:36px 44px;
+    text-align:center; box-shadow:0 0 60px rgba(255,215,0,.45);
+    transform:scale(.65) rotate(-4deg);
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1);
+    max-width:88vw;
   }
-  .result-overlay.show .result-card { transform: scale(1); }
-  .result-emoji { font-size: 3.5rem; margin-bottom: 8px; animation: bounce 0.6s ease infinite; }
-  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .result-overlay.show .result-card { transform:scale(1) rotate(0deg); }
+  .result-emoji { font-size:3.8rem; margin-bottom:8px; animation:bounce .65s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .result-sub  { color:#888; font-size:.85rem; margin-bottom:6px; }
   .result-text {
-    font-size: 2.2rem; font-weight: 900;
-    background: linear-gradient(135deg,#FFD700,#FF8C00);
+    font-size:2.4rem; font-weight:900;
+    background:linear-gradient(135deg,#FFD700,#FF8C00);
     -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     background-clip:text;
   }
+  .result-note { color:#555; font-size:.78rem; margin-top:10px; }
 
-  /* ── Speed indicator ── */
-  .speed-bar-wrap {
-    width: min(280px,80vw);
-    background: #1a1a2e;
-    border-radius: 50px;
-    height: 6px;
-    overflow: hidden;
+  /* Confetti */
+  .confetti-piece {
+    position:fixed; pointer-events:none; z-index:300;
+    animation: cf-fall var(--cf-dur,2s) var(--cf-delay,0s) ease-out forwards;
   }
-  .speed-bar {
-    height: 100%;
-    background: linear-gradient(90deg,#FFD700,#FF4500);
-    width: 0%;
-    transition: width 0.1s;
+  @keyframes cf-fall {
+    0%  { transform:translateY(-10px) rotate(0deg)   scale(1);  opacity:1; }
+    80% { opacity:1; }
+    100%{ transform:translateY(100vh) rotate(700deg) scale(.2); opacity:0; }
   }
 
+  /* Particles */
+  .particle {
+    position:absolute; pointer-events:none; z-index:20; border-radius:50%;
+    animation: p-burst var(--pd,.8s) var(--pde,0s) ease-out forwards;
+  }
+  @keyframes p-burst {
+    0%  { transform:translate(0,0) scale(1); opacity:1; }
+    100%{ transform:translate(var(--tx,50px),var(--ty,-80px)) scale(0); opacity:0; }
+  }
+
+  /* Sound toggle */
   .sound-toggle {
-    position:fixed; top:16px; left:16px; z-index:50;
+    position:fixed; top:14px; left:14px; z-index:50;
     width:38px; height:38px; border-radius:50%;
-    background:var(--card); border:1px solid #333;
+    background:var(--card); border:1px solid #2a2a3a;
     display:flex; align-items:center; justify-content:center;
-    font-size:1.1rem; cursor:pointer;
+    font-size:1.1rem; cursor:pointer; transition:border-color .2s;
   }
+  .sound-toggle:hover { border-color:var(--gold); }
 </style>
 </head>
 <body>
@@ -270,30 +236,60 @@
 
   <div class="wheel-wrapper" id="wheelWrapper">
     <canvas id="wheelCanvas"></canvas>
-    
+
+    <!-- Pointer — metallic straight arrow -->
     <div class="pointer">
-      <svg width="36" height="46" viewBox="0 0 36 46">
+      <svg width="42" height="60" viewBox="0 0 42 60" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#FFF7C2"/>
-            <stop offset="40%" stop-color="#FFD700"/>
-            <stop offset="100%" stop-color="#FF4500"/>
+          <linearGradient id="shaftG" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#8B6000"/>
+            <stop offset="22%"  stop-color="#FFD700"/>
+            <stop offset="50%"  stop-color="#FFF8DC"/>
+            <stop offset="78%"  stop-color="#FFD700"/>
+            <stop offset="100%" stop-color="#8B6000"/>
           </linearGradient>
+          <linearGradient id="tipG" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#C05000"/>
+            <stop offset="28%"  stop-color="#FFD700"/>
+            <stop offset="50%"  stop-color="#FFFDE0"/>
+            <stop offset="72%"  stop-color="#FFD700"/>
+            <stop offset="100%" stop-color="#C05000"/>
+          </linearGradient>
+          <radialGradient id="orbG" cx="36%" cy="30%" r="65%">
+            <stop offset="0%"   stop-color="#FFFDE0"/>
+            <stop offset="45%"  stop-color="#FFD700"/>
+            <stop offset="100%" stop-color="#7A4E00"/>
+          </radialGradient>
+          <filter id="sf">
+            <feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".75"/>
+          </filter>
         </defs>
-        <path d="M18,44 L2,4 L34,4 Z" fill="url(#goldGrad)" stroke="#000" stroke-width="1.5"/>
-        <circle cx="18" cy="4" r="3" fill="#FFF"/>
-        <circle cx="18" cy="42" r="4" fill="#FF4500" stroke="#000" stroke-width="1"/>
+        <path d="M21,58 L6,18 Q4,9 13,8 L21,10 L29,8 Q38,9 36,18 Z"
+              fill="#000" opacity=".35" transform="translate(2,2)"/>
+        <rect x="16.5" y="9" width="9" height="36" rx="2.5"
+              fill="url(#shaftG)" stroke="#6B4000" stroke-width=".7"/>
+        <rect x="19.5" y="10" width="3" height="33" rx="1.5"
+              fill="rgba(255,255,255,.36)"/>
+        <path d="M21,58 L6,18 Q4,9 13,8 L21,10.5 L29,8 Q38,9 36,18 Z"
+              fill="url(#tipG)" stroke="#6B4000" stroke-width=".9"/>
+        <path d="M21,54 L12,22 L21,25 L30,22 Z" fill="rgba(255,255,255,.15)"/>
+        <line x1="16.5" y1="12" x2="6"  y2="20" stroke="#6B4000" stroke-width=".8" opacity=".7"/>
+        <line x1="25.5" y1="12" x2="36" y2="20" stroke="#FFFDE0" stroke-width=".8" opacity=".35"/>
+        <circle cx="21" cy="9" r="9.5"
+                fill="url(#orbG)" stroke="#6B4000" stroke-width="1.2" filter="url(#sf)"/>
+        <ellipse cx="17.5" cy="5.5" rx="3.8" ry="2.3"
+                 fill="rgba(255,255,255,.5)" transform="rotate(-20,17.5,5.5)"/>
+        <circle cx="21" cy="9" r="2.4" fill="#6B4000" opacity=".65"/>
+        <circle cx="21" cy="9" r="1"   fill="rgba(255,255,255,.4)"/>
       </svg>
     </div>
-    
+
     <div class="center-circle" id="centerCircle"></div>
   </div>
 
   <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
 
-  <div class="controls">
-    <button class="btn primary" id="spinBtn"><span>🎰 أدر العجلة</span></button>
-  </div>
+  <button class="btn" id="spinBtn">🎰 أدر العجلة</button>
 
   <div class="spins-counter-card">
     <span>اللفات المجانية المتاحة لك:</span>
@@ -301,296 +297,475 @@
   </div>
 
   <div class="rewards-grid">
-    <div class="reward-box" style="border-bottom: 3px solid #212121;">💵 50 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #00bcd4;">⚡ 100 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #4caf50;">💰 200 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #e67e22;">🌟 250 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #9c27b0;">✨ 350 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #e91e63;">🎁 500 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #3f51b5;">🚀 750 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #ffeb3b; color: #ffeb3b;">👑 1000 ليرة</div>
-    <div class="reward-box" style="border-bottom: 3px solid #673ab7;">💎 1500 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#888;">💵 50 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#00bcd4;">⚡ 100 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#4caf50;">💰 200 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#e67e22;">🌟 250 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#9c27b0;">✨ 350 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#e91e63;">🎁 500 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#3f51b5;">🚀 750 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#ffeb3b;color:#ffeb3b;">👑 1000 ليرة</div>
+    <div class="reward-box" style="border-bottom-color:#673ab7;">💎 1500 ليرة</div>
   </div>
 </div>
 
+<!-- Result -->
 <div class="result-overlay" id="resultOverlay">
   <div class="result-card">
     <div class="result-emoji" id="resultEmoji">🎉</div>
-    <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">مبروك! لقد فزت بـ</div>
+    <div class="result-sub">مبروك! لقد فزت بـ</div>
     <div class="result-text" id="resultText">—</div>
-    <br>
-    <p style="color: #666; font-size: 0.8rem;">يتم الآن إضافة كاش الرصيد لحسابك...</p>
+    <div class="result-note">يتم الآن إضافة الرصيد لحسابك...</div>
   </div>
 </div>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+/* ── Telegram init ── */
+const tg = window.Telegram?.WebApp;
+if (tg) { try { tg.expand(); tg.ready(); } catch(e){} }
 
-// العناصر مرتبة تماماً مثل الصورة 시계방향
-const items = [
-  { label:"750 ليرة 🚀", color:"#3f51b5" },   // 0
-  { label:"1000 ليرة 👑", color:"#ffeb3b" },  // 1
-  { label:"1500 ليرة 💎", color:"#673ab7" },  // 2
-  { label:"50 ليرة 💵", color:"#212121" },    // 3 -> هاد التارجت المطلوب بالضبط!
-  { label:"100 ليرة ⚡", color:"#00bcd4" },   // 4
-  { label:"200 ليرة 💰", color:"#4caf50" },   // 5
-  { label:"250 ليرة 🌟", color:"#e67e22" },   // 6
-  { label:"350 ليرة ✨", color:"#9c27b0" },   // 7
-  { label:"500 ليرة 🎁", color:"#e91e63" }    // 8
+/* ══════════════════════════════════════════════
+   SEGMENTS  (9)
+   index 3 = "50 ليرة" ← دائماً يفوز
+══════════════════════════════════════════════ */
+const ITEMS = [
+  { label:"750 ليرة 🚀",  color:"#3a4fa3", border:"#6979d4" },
+  { label:"1000 ليرة 👑", color:"#b8960a", border:"#ffe135" },
+  { label:"1500 ليرة 💎", color:"#5c2e9a", border:"#a855d4" },
+  { label:"50 ليرة 💵",   color:"#252525", border:"#888888" },  // ← TARGET
+  { label:"100 ليرة ⚡",  color:"#006f7a", border:"#00bcd4" },
+  { label:"200 ليرة 💰",  color:"#1b5e20", border:"#43a047" },
+  { label:"250 ليرة 🌟",  color:"#bf5e00", border:"#f4931a" },
+  { label:"350 ليرة ✨",  color:"#5e1585", border:"#b248d4" },
+  { label:"500 ليرة 🎁",  color:"#9a0f44", border:"#e91e6e" },
 ];
+const TARGET = 3;   // always wins
+const N      = ITEMS.length;
+const ARC    = (2 * Math.PI) / N;
 
-let angle = 0;
-let spinning = false;
-let soundOn = true;
-let idleAngle = 0;
-
-// ── تهيئة الـ Canvas ليعمل بدقة Ultra HD خارقة عالي الكثافة ──
+/* ══════════════════════════════════════════════
+   ULTRA-HD CANVAS  (device-pixel-ratio aware)
+══════════════════════════════════════════════ */
 const canvas = document.getElementById('wheelCanvas');
-const ctx = canvas.getContext('2d');
-const baseSize = 400; // الحجم الافتراضي للرسم داخلياً
+const ctx    = canvas.getContext('2d');
+const BASE   = 400;   // logical px
+let   dpr    = 1;
 
-function setupHighDPICanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  // نضرب حجم البكسلات الفعلي بنسبة الشاشة لزيادة الحدة عالاخير
-  canvas.width = baseSize * dpr;
-  canvas.height = baseSize * dpr;
-  ctx.scale(dpr, dpr);
+function setupCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  canvas.width  = BASE * dpr;
+  canvas.height = BASE * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-setupHighDPICanvas();
+setupCanvas();
 
-const R = baseSize / 2;
+const R = BASE / 2;
 
-// AUDIO GENERATOR
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new AudioCtx();
-  return audioCtx;
-}
-function playTick() {
-  if (!soundOn) return;
-  try {
-    const ctxAud = getAudioCtx();
-    const o = ctxAud.createOscillator(), g = ctxAud.createGain();
-    o.connect(g); g.connect(ctxAud.destination);
-    o.frequency.value = 650 + Math.random()*300;
-    o.type = 'triangle';
-    g.gain.setValueAtTime(0.15, ctxAud.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctxAud.currentTime+0.06);
-    o.start(); o.stop(ctxAud.currentTime+0.06);
-  } catch(e){}
-}
-function playWin() {
-  if (!soundOn) return;
-  try {
-    const ctxAud = getAudioCtx();
-    [523, 659, 784, 1047].forEach((f, i) => {
-      const o = ctxAud.createOscillator(), g = ctxAud.createGain();
-      o.connect(g); g.connect(ctxAud.destination);
-      o.frequency.value = f; o.type = 'sine';
-      const t = ctxAud.currentTime + i * 0.1;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.2, t + 0.04);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-      o.start(t); o.stop(t + 0.3);
-    });
-  } catch(e){}
-}
+/* ══════════════════════════════════════════════
+   DRAW  — Colored border ring per segment
+══════════════════════════════════════════════ */
+function drawWheel(a) {
+  ctx.clearRect(0, 0, BASE, BASE);
 
-// STARS Background
-const starsEl = document.getElementById('stars');
-for(let i=0;i<100;i++){
-  const s=document.createElement('div'); s.className='star';
-  s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;
-    --d:${2+Math.random()*3}s;--delay:${Math.random()*4}s;--op:${0.3+Math.random()*0.7};
-    width:${1+Math.random()*2}px;height:${1+Math.random()*2}px`;
-  starsEl.appendChild(s);
-}
+  /* 1 ─ outer colored border segments */
+  ITEMS.forEach((item, i) => {
+    const s = a + i * ARC, e = s + ARC;
+    ctx.beginPath();
+    ctx.moveTo(R, R);
+    ctx.arc(R, R, R - 1, s, e);
+    ctx.closePath();
+    ctx.fillStyle = item.border;
+    ctx.fill();
+  });
 
-function drawWheel(currentAngle) {
-  const n = items.length;
-  const arc = (2 * Math.PI) / n;
-  ctx.clearRect(0, 0, baseSize, baseSize);
-
-  items.forEach((item, i) => {
-    const start = currentAngle + i * arc;
-    const end   = start + arc;
+  /* 2 ─ inner fill segments (inset 17px so border is visible) */
+  const INSET = R - 17;
+  ITEMS.forEach((item, i) => {
+    const s = a + i * ARC, e = s + ARC;
 
     ctx.beginPath();
     ctx.moveTo(R, R);
-    ctx.arc(R, R, R - 5, start, end);
+    ctx.arc(R, R, INSET, s, e);
     ctx.closePath();
     ctx.fillStyle = item.color;
     ctx.fill();
 
-    const grad = ctx.createRadialGradient(R, R, R * 0.15, R, R, R - 5);
-    grad.addColorStop(0, 'rgba(255,255,255,0.12)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.25)');
-    ctx.fillStyle = grad;
+    /* depth gradient */
+    const g = ctx.createRadialGradient(R, R, INSET * .1, R, R, INSET);
+    g.addColorStop(0, 'rgba(255,255,255,.14)');
+    g.addColorStop(1, 'rgba(0,0,0,.32)');
+    ctx.fillStyle = g;
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-    ctx.lineWidth = 1.8;
+    /* divider line */
+    ctx.strokeStyle = 'rgba(255,255,255,.16)';
+    ctx.lineWidth = 1.4;
     ctx.stroke();
+  });
 
+  /* 3 ─ text */
+  ITEMS.forEach((item, i) => {
     ctx.save();
     ctx.translate(R, R);
-    ctx.rotate(start + arc / 2);
+    ctx.rotate(a + i * ARC + ARC / 2);
     ctx.textAlign = 'right';
-    ctx.fillStyle = (item.color === '#ffeb3b') ? '#111' : '#fff';
-    
-    const fs = Math.min(13, 240 / item.label.length);
-    ctx.font = `bold ${fs}px Cairo, sans-serif`;
-    ctx.shadowColor = 'rgba(0,0,0,0.8)'; 
-    ctx.shadowBlur = 4;
-    ctx.fillText(item.label, R - 18, 5);
+    const light = item.color === '#b8960a';
+    ctx.fillStyle = light ? '#111' : '#fff';
+    const fs = Math.min(13, 225 / item.label.length);
+    ctx.font = `900 ${fs}px Cairo, sans-serif`;
+    ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = 5;
+    ctx.fillText(item.label, R - 22, 4.5);
     ctx.restore();
   });
 
-  // طوق خارجي فخم
+  /* 4 ─ gold outer ring */
   ctx.beginPath();
-  ctx.arc(R, R, R - 3, 0, 2 * Math.PI);
+  ctx.arc(R, R, R - 1, 0, 2 * Math.PI);
   ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 4.5;
+  ctx.lineWidth   = 5.5;
   ctx.stroke();
 
-  // النقاط المضيئة عالي الدقة بالأطراف
-  const n2 = items.length * 2;
-  for(let i = 0; i < n2; i++) {
-    const a = currentAngle + (i / n2) * 2 * Math.PI;
-    const x = R + (R - 6) * Math.cos(a);
-    const y = R + (R - 6) * Math.sin(a);
+  /* 5 ─ decorative bulbs */
+  const BULBS = N * 3;
+  for (let i = 0; i < BULBS; i++) {
+    const ba = a + (i / BULBS) * 2 * Math.PI;
+    const bx = R + (R - 10) * Math.cos(ba);
+    const by = R + (R - 10) * Math.sin(ba);
     ctx.beginPath();
-    ctx.arc(x, y, 2.8, 0, 2 * Math.PI);
-    ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#fff';
+    ctx.arc(bx, by, i % 3 === 0 ? 4 : 2.3, 0, 2 * Math.PI);
+    ctx.fillStyle = i % 3 === 0 ? '#FFD700' : (i % 3 === 1 ? '#fff' : 'rgba(255,215,0,.4)');
     ctx.fill();
   }
+
+  /* 6 ─ inner vignette */
+  const vg = ctx.createRadialGradient(R, R, INSET * .55, R, R, INSET);
+  vg.addColorStop(0, 'transparent');
+  vg.addColorStop(1, 'rgba(0,0,0,.26)');
+  ctx.beginPath();
+  ctx.arc(R, R, INSET, 0, 2 * Math.PI);
+  ctx.fillStyle = vg;
+  ctx.fill();
 }
 
-drawWheel(angle);
+let masterAngle = 0;
+drawWheel(masterAngle);
 
-// SPIN CONTROL (الحساب البرمجي الدقيق للوقوف على الـ 50 ليرة بالضبط)
+/* ══════════════════════════════════════════════
+   REALISTIC SLOT AUDIO ENGINE
+   Layers: mechanical ratchet click  +
+           low rumble oscillator     +
+           filtered white-noise spin
+══════════════════════════════════════════════ */
+const AC2 = window.AudioContext || window.webkitAudioContext;
+let ac2;
+function getAC() { if (!ac2) ac2 = new AC2(); return ac2; }
+
+let soundOn   = true;
+let rumbleSrc = null;
+let noiseSrc  = null;
+
+/* Short ratchet click — bandpass noise burst */
+function playTick(speed) {
+  if (!soundOn) return;
+  try {
+    const a   = getAC();
+    const dur = 0.035;
+    const buf = a.createBuffer(1, Math.floor(a.sampleRate * dur), a.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+
+    const src = a.createBufferSource(); src.buffer = buf;
+    const bp  = a.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 600 + speed * 1200;
+    bp.Q.value = 8;
+
+    const gain = a.createGain();
+    const vol  = Math.min(speed * 4, 0.3);
+    gain.gain.setValueAtTime(vol, a.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+
+    src.connect(bp); bp.connect(gain); gain.connect(a.destination);
+    src.start(); src.stop(a.currentTime + dur);
+  } catch(e){}
+}
+
+/* Start continuous rumble + noise */
+function startSpinAudio() {
+  if (!soundOn) return;
+  try {
+    const a = getAC();
+
+    /* Sawtooth rumble */
+    const osc  = a.createOscillator();
+    const ogain = a.createGain();
+    osc.type = 'sawtooth'; osc.frequency.value = 60;
+    ogain.gain.setValueAtTime(0, a.currentTime);
+    ogain.gain.linearRampToValueAtTime(0.08, a.currentTime + 0.35);
+    osc.connect(ogain); ogain.connect(a.destination);
+    osc.start();
+    rumbleSrc = { osc, gain: ogain };
+
+    /* White noise air spin */
+    const bufLen = a.sampleRate * 3;
+    const nbuf   = a.createBuffer(1, bufLen, a.sampleRate);
+    const nd     = nbuf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) nd[i] = Math.random() * 2 - 1;
+
+    const ns = a.createBufferSource();
+    ns.buffer = nbuf; ns.loop = true;
+
+    const lp = a.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 700;
+
+    const ngain = a.createGain();
+    ngain.gain.setValueAtTime(0, a.currentTime);
+    ngain.gain.linearRampToValueAtTime(0.07, a.currentTime + 0.4);
+
+    ns.connect(lp); lp.connect(ngain); ngain.connect(a.destination);
+    ns.start();
+    noiseSrc = { src: ns, gain: ngain };
+  } catch(e){}
+}
+
+/* Fade out rumble + noise */
+function stopSpinAudio() {
+  try {
+    const a = getAC();
+    if (rumbleSrc) {
+      rumbleSrc.gain.gain.linearRampToValueAtTime(0, a.currentTime + 0.7);
+      rumbleSrc.osc.stop(a.currentTime + 0.75);
+      rumbleSrc = null;
+    }
+    if (noiseSrc) {
+      noiseSrc.gain.gain.linearRampToValueAtTime(0, a.currentTime + 0.55);
+      noiseSrc.src.stop(a.currentTime + 0.6);
+      noiseSrc = null;
+    }
+  } catch(e){}
+}
+
+/* Win fanfare */
+function playWin() {
+  if (!soundOn) return;
+  try {
+    const a = getAC();
+    [523,659,784,988,1047].forEach((f,i) => {
+      const o = a.createOscillator(), g = a.createGain();
+      o.connect(g); g.connect(a.destination);
+      o.frequency.value = f; o.type = 'sine';
+      const t = a.currentTime + i * 0.11;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.22, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+      o.start(t); o.stop(t + 0.38);
+    });
+  } catch(e){}
+}
+
+/* ══════════════════════════════════════════════
+   STARS
+══════════════════════════════════════════════ */
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 110; i++) {
+  const s = document.createElement('div'); s.className = 'star';
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;
+    --d:${2+Math.random()*4}s;--delay:${Math.random()*5}s;
+    --op:${.3+Math.random()*.7};
+    width:${1+Math.random()*2.5}px;height:${1+Math.random()*2.5}px`;
+  starsEl.appendChild(s);
+}
+
+/* ══════════════════════════════════════════════
+   SPIN ENGINE
+   Pointer is at top → 270° = 3π/2
+   We need midpoint of segment[TARGET] at top.
+   segMidAngle = TARGET*ARC + ARC/2  (from angle=0)
+   We need: masterAngle + segMidAngle ≡ 3π/2  (mod 2π)
+   => masterAngle_final = 3π/2 - segMidAngle + k*2π  (k = extraRevs)
+══════════════════════════════════════════════ */
+let spinning   = false;
+let idleDrift  = 0;
+
 function spinWheel() {
-  if(spinning) return;
+  if (spinning) return;
   spinning = true;
-  getAudioCtx();
+  getAC();
 
   document.getElementById('spinBtn').disabled = true;
-  document.getElementById('wheelCanvas').classList.add('spinning');
+  document.getElementById('centerCircle').classList.add('spinning');
+  startSpinAudio();
 
-  const n = items.length;
-  const arc = (2 * Math.PI) / n;
-  
-  // الـ 50 ليرة تقع في الأندكس رقم 3 ضمن المصفوفة الفوق
-  const chosenIndex = 3; 
+  const extraRevs    = 8 + Math.floor(Math.random() * 5);   // 8–12 full rounds
+  const segMidOffset = TARGET * ARC + ARC / 2;
+  const pointerPos   = (3 / 2) * Math.PI;                   // top
 
-  // عدد لفات كاملة عشوائية سريعة قبل الوقوف
-  const extraSpins = (8 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-  
-  // الزاوية المطلوبة ليكون مركز الخانة رقم 3 تحت السهم العلوي (الذي يقع عند زاوية -90 درجة أو 1.5*PI)
-  const targetAngle = extraSpins + (1.5 * Math.PI) - (chosenIndex * arc) - (arc / 2);
+  /* normalise current angle to [0, 2π) */
+  const curMod = ((masterAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
 
-  const startAngle = angle % (2 * Math.PI);
-  const totalChange = targetAngle - startAngle;
-  const duration = 6000; // وقت الدوران فخم وبطيء بالنهاية لزيادة الحماس
-  const startTime = performance.now();
+  /* exact target angle (absolute, always > masterAngle) */
+  let target = extraRevs * 2 * Math.PI + pointerPos - segMidOffset;
+  /* adjust so delta > 0 */
+  while (target < masterAngle + 2 * Math.PI) target += 2 * Math.PI;
 
-  let lastTickAngle = startAngle;
+  const startA    = masterAngle;
+  const delta     = target - startA;
+  const DURATION  = 5800 + Math.random() * 1400;   // 5.8 – 7.2 s
+  const t0        = performance.now();
 
-  function animate(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
+  let prevAngle   = startA;
+  let lastSeg     = -1;
 
-    const eased = easeOutQuart(progress);
-    const newAngle = startAngle + totalChange * eased;
-    angle = newAngle;
+  function frame(now) {
+    const elapsed = now - t0;
+    const p       = Math.min(elapsed / DURATION, 1);
+    const eased   = easeOutQuint(p);
+    const cur     = startA + delta * eased;
 
-    const speed = Math.abs((newAngle - lastTickAngle));
-    document.getElementById('speedBar').style.width = Math.min(speed * 900, 100) + '%';
+    masterAngle = cur;
+    idleDrift   = 0;
 
-    // صوت التكة الاحترافية عند اجتياز الفواصل
-    const tickAngle = newAngle % arc;
-    const prevTickAngle = lastTickAngle % arc;
-    if(tickAngle < prevTickAngle && speed > 0.005) playTick();
+    /* speed bar */
+    const spd = Math.abs(cur - prevAngle);
+    document.getElementById('speedBar').style.width = Math.min(spd * 1000, 100) + '%';
 
-    lastTickAngle = newAngle;
-    drawWheel(newAngle);
+    /* ratchet tick: one click per segment crossing */
+    const seg = Math.floor(((cur % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI) / ARC) % N;
+    if (seg !== lastSeg) {
+      playTick(Math.min(spd * 6, 1));
+      lastSeg = seg;
+    }
 
-    if(progress < 1) {
-      requestAnimationFrame(animate);
+    drawWheel(cur);
+    prevAngle = cur;
+
+    if (p < 1) {
+      requestAnimationFrame(frame);
     } else {
-      angle = newAngle;
+      masterAngle = target;
       spinning = false;
-      document.getElementById('wheelCanvas').classList.remove('spinning');
+      stopSpinAudio();
+      document.getElementById('spinBtn').disabled = false;
+      document.getElementById('centerCircle').classList.remove('spinning');
       document.getElementById('speedBar').style.width = '0%';
-      showResult(items[chosenIndex]);
+      setTimeout(() => showResult(ITEMS[TARGET]), 200);
     }
   }
-  requestAnimationFrame(animate);
+
+  requestAnimationFrame(frame);
 }
 
-// معادلة تباطؤ فخمة جداً ودقيقة للوقوف السلس بالملي
-function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+function easeOutQuint(t) { return 1 - Math.pow(1 - t, 5); }
 
-// SHOW RESULT
+/* ══════════════════════════════════════════════
+   SHOW RESULT
+══════════════════════════════════════════════ */
 function showResult(item) {
   playWin();
   spawnConfetti();
+  spawnParticles();
 
-  document.getElementById('resultText').textContent = item.label;
+  document.getElementById('resultText').textContent  = item.label;
+  document.getElementById('resultEmoji').textContent = '🎉';
   document.getElementById('resultOverlay').classList.add('show');
 
-  setTimeout(() => {
-    tg.sendData(JSON.stringify({
-      prize: item.label,
-      amount: 50
-    }));
-    tg.close();
-  }, 2500);
-}
-
-// CONFETTI EFFECT
-function spawnConfetti() {
-  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#fff'];
-  for(let i=0;i<70;i++){
-    const c = document.createElement('div');
-    c.className = 'confetti-piece';
-    c.style.cssText=`
-      left:${Math.random()*100}vw; top:0;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      border-radius:${Math.random()>0.5?'50%':'2px'};
-      width:${6+Math.random()*8}px; height:${8+Math.random()*12}px;
-      --cf-dur:${1.8+Math.random()*2}s; --cf-delay:${Math.random()*0.5}s;
-    `;
-    document.body.appendChild(c);
-    c.addEventListener('animationend',()=>c.remove());
+  if (tg) {
+    setTimeout(() => {
+      try { tg.sendData(JSON.stringify({ prize: item.label, amount: 50 })); } catch(e){}
+      try { tg.close(); } catch(e){}
+    }, 3000);
   }
 }
 
-// LISTENERS
-canvas.addEventListener('click', spinWheel);
-document.getElementById('spinBtn').addEventListener('click', spinWheel);
-document.getElementById('centerCircle').addEventListener('click', spinWheel);
-document.getElementById('soundToggle').addEventListener('click',()=>{
-  soundOn=!soundOn;
-  document.getElementById('soundToggle').textContent=soundOn?'🔊':'🔇';
-});
+/* ══════════════════════════════════════════════
+   CONFETTI + PARTICLES
+══════════════════════════════════════════════ */
+const CCOLORS = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#fff'];
 
-// نافذة إعادة ضبط الحجم تلقائياً عند تدوير شاشة الموبايل للحفاظ على الدقة الخارقة
-window.addEventListener('resize', () => {
-  setupHighDPICanvas();
-  drawWheel(angle + idleAngle);
-});
+function spawnConfetti() {
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText = `
+      left:${Math.random()*100}vw; top:0;
+      background:${CCOLORS[i % CCOLORS.length]};
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      width:${6+Math.random()*10}px; height:${8+Math.random()*13}px;
+      --cf-dur:${1.8+Math.random()*2.2}s;
+      --cf-delay:${Math.random()*.7}s;
+    `;
+    document.body.appendChild(c);
+    c.addEventListener('animationend', () => c.remove());
+  }
+}
 
-// IDLE LOOP الدوران التلقائي الخفيف أثناء الانتظار
-(function idleLoop(){
-  if(!spinning){
-    idleAngle += 0.0006;
-    drawWheel(angle + idleAngle);
+function spawnParticles() {
+  const wr = document.getElementById('wheelWrapper');
+  const pc = ['#FFD700','#FF6B6B','#4ECDC4','#fff','#FF8C00'];
+  for (let i = 0; i < 24; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const ang = Math.random() * 2 * Math.PI;
+    const dst = 70 + Math.random() * 130;
+    p.style.cssText = `
+      left:calc(50% - 4px); top:calc(50% - 4px);
+      width:8px; height:8px;
+      background:${pc[i % pc.length]};
+      --tx:${Math.cos(ang)*dst}px; --ty:${Math.sin(ang)*dst}px;
+      --pd:${.5+Math.random()*.7}s; --pde:${Math.random()*.2}s;
+    `;
+    wr.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+/* ══════════════════════════════════════════════
+   IDLE DRIFT
+══════════════════════════════════════════════ */
+(function idleLoop() {
+  if (!spinning) {
+    idleDrift += 0.00045;
+    drawWheel(masterAngle + idleDrift);
   }
   requestAnimationFrame(idleLoop);
 })();
+
+/* ══════════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════════ */
+document.getElementById('spinBtn').addEventListener('click', spinWheel);
+document.getElementById('centerCircle').addEventListener('click', spinWheel);
+canvas.addEventListener('click', spinWheel);
+
+/* swipe up → spin */
+let swipeY = 0;
+canvas.addEventListener('touchstart', e => { swipeY = e.touches[0].clientY; }, { passive:true });
+canvas.addEventListener('touchend',   e => {
+  if (swipeY - e.changedTouches[0].clientY > 45) spinWheel();
+}, { passive:true });
+
+/* spacebar */
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); spinWheel(); }
+});
+
+/* close result on backdrop click */
+document.getElementById('resultOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('resultOverlay'))
+    document.getElementById('resultOverlay').classList.remove('show');
+});
+
+/* sound */
+document.getElementById('soundToggle').addEventListener('click', () => {
+  soundOn = !soundOn;
+  document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+});
+
+/* resize → rebuild DPR */
+window.addEventListener('resize', () => {
+  setupCanvas();
+  drawWheel(masterAngle + idleDrift);
+});
 </script>
 </body>
 </html>
