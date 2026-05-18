@@ -2,15 +2,15 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوريا كاش - العجلة الملكية 3D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>العجلة الملكية الكبرى 3D</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: #0d111b;
+            background: radial-gradient(circle at center, #161a26 0%, #07090e 100%);
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -21,133 +21,121 @@
             overflow: hidden;
         }
 
+        /* حاوية العجلة بمنظور 3D سينمائي فخم ثابت ومتناسق */
+        .stage-3d {
+            perspective: 1400px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         .wheel-wrapper {
             position: relative;
-            width: 88vw;
-            max-width: 360px;
-            height: 88vw;
-            max-width: 360px;
-            margin-bottom: 30px;
-        }
-
-        .outer-border {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            padding: 12px;
-            box-sizing: border-box;
-            background: linear-gradient(135deg, #f0f0f0 0%, #7a7a7a 25%, #ffffff 50%, #4a4a4a 75%, #cccccc 100%);
-            box-shadow: 
-                0 15px 35px rgba(0,0,0,0.6),
-                inset 0 4px 10px rgba(255,255,255,0.6),
-                0 0 25px rgba(255, 215, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .wheel-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #151a26;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            width: 90vw;
+            max-width: 390px;
+            height: 90vw;
+            max-width: 390px;
+            /* إمالة خفيفة وذكية لإعطاء مظهر ثلاثي الأبعاد فخم جداً بدون تشويه */
+            transform: rotateX(12deg);
+            transform-style: preserve-3d;
         }
 
         canvas {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            transform: rotate(0deg);
-            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 6s cubic-bezier(0.15, 0.85, 0.15, 1);
+            filter: drop-shadow(0 25px 35px rgba(0, 0, 0, 0.75));
         }
 
-        .pointer {
+        /* السهم الذهبي الواقعي مع التظليل العميق */
+        .premium-pointer {
             position: absolute;
-            top: -12px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 32px;
-            height: 42px;
-            background: linear-gradient(180deg, #fff 0%, #ffcc00 40%, #cc9900 100%);
+            width: 38px;
+            height: 48px;
+            background: linear-gradient(185deg, #fff 0%, #ffcc00 40%, #b8860b 80%, #553300 100%);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 20;
-            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
+            z-index: 30;
+            filter: drop-shadow(0 6px 6px rgba(0,0,0,0.6));
             transform-origin: 50% 0%;
         }
 
-        @keyframes hit-tick {
+        @keyframes pointer-hit {
             0% { transform: translateX(-50%) rotate(0deg); }
-            50% { transform: translateX(-50%) rotate(-15deg); }
+            50% { transform: translateX(-50%) rotate(-18deg); }
             100% { transform: translateX(-50%) rotate(0deg); }
         }
 
-        .pointer.hit {
-            animation: hit-tick 0.15s ease;
+        .premium-pointer.active-tick {
+            animation: pointer-hit 0.12s ease;
         }
 
-        .btn-spin {
-            background: linear-gradient(180deg, #ffcc00 0%, #d4af37 100%);
-            color: #0b0e14;
-            border: none;
-            padding: 14px 55px;
-            font-size: 1.15rem;
-            font-weight: bold;
-            border-radius: 30px;
+        /* زر ابدأ التدوير الذهبي النيون اللامع */
+        .btn-premium {
+            background: linear-gradient(180deg, #ffe555 0%, #d4af37 50%, #aa7c11 100%);
+            color: #06080c;
+            border: 1px solid #fff;
+            padding: 15px 65px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            border-radius: 35px;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.3);
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.4),
+                0 8px 25px rgba(0,0,0,0.5);
             transition: all 0.2s ease;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
         }
 
-        .btn-spin:active {
-            transform: scale(0.96);
-            box-shadow: 0 3px 10px rgba(255, 204, 0, 0.2);
+        .btn-premium:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
 
-        .btn-spin:disabled {
-            background: #252a37;
-            color: #5c6479;
+        .btn-premium:disabled {
+            background: linear-gradient(180deg, #333 0%, #222 100%);
+            color: #666;
+            border-color: #444;
             box-shadow: none;
             cursor: not-allowed;
         }
 
-        .info-box {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+        .status-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.2);
             border-radius: 16px;
-            padding: 14px;
+            padding: 12px 25px;
             text-align: center;
-            width: 82%;
-            max-width: 320px;
-            margin-top: 25px;
+            margin-top: 20px;
             font-size: 0.85rem;
-            line-height: 1.4;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
-        .gold { color: #ffcc00; font-weight: bold; }
+        .gold-glow { color: #ffcc00; font-weight: bold; text-shadow: 0 0 5px rgba(255,204,0,0.3); }
     </style>
 </head>
 <body>
 
-    <div class="wheel-wrapper">
-        <div class="pointer" id="pin"></div>
-        <div class="outer-border">
-            <div class="wheel-container">
-                <canvas id="wheel" width="500" height="500"></canvas>
-            </div>
+    <div class="stage-3d">
+        <div class="wheel-wrapper">
+            <div class="premium-pointer" id="pointerDevice"></div>
+            <canvas id="premiumCanvas" width="600" height="600"></canvas>
         </div>
     </div>
 
-    <button class="btn-spin" id="spinBtn" onclick="spin()">ابدأ التدوير</button>
+    <button class="btn-premium" id="spinBtn" onclick="executeSpin()">ابدأ التدوير</button>
 
-    <div class="info-box">
-        <span class="gold">الوضع الحقيقي نشط</span><br>
-        سيتم تسجيل الجائزة وخصم الرصيد تلقائياً داخل البوت.
+    <div class="status-box">
+        <span class="gold-glow">الوضع الملكي نشط</span><br>
+        انتظرونا... الجوائز تُسجّل مباشرة داخل حسابك بالبوت.
     </div>
 
-    <audio id="sndTick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
-    <audio id="sndWin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></audio>
+    <audio id="tickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></audio>
 
 <script>
     const tg = window.Telegram.WebApp;
@@ -156,11 +144,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode') || 'cash';
 
-    const canvas = document.getElementById('wheel');
+    const canvas = document.getElementById('premiumCanvas');
     const ctx = canvas.getContext('2d');
-    const pin = document.getElementById('pin');
-    const sndTick = document.getElementById('sndTick');
-    const sndWin = document.getElementById('sndWin');
+    const pointerDevice = document.getElementById('pointerDevice');
+    const tickSound = document.getElementById('tickSound');
+    const winSound = document.getElementById('winSound');
 
     let prizes = [];
     if(mode === 'refs') {
@@ -169,94 +157,193 @@
         prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
     }
 
-    const colors = ["#1a1f2c", "#2c3e50", "#1e272c", "#34495e", "#161b22", "#243342", "#2c3e50", "#11161b"];
+    // ألوان داكنة ملكية وخلفية فخمة لتبرز الإضاءة والذهب بالملي
+    const colors = ["#131722", "#1b2030", "#0f121a", "#1b2030", "#131722", "#1b2030", "#0f121a", "#1b2030"];
     const numSeg = prizes.length;
     const segAngle = (2 * Math.PI) / numSeg;
-    let currentDegree = 0;
 
-    function draw() {
-        ctx.clearRect(0, 0, 500, 500);
+    // دالة رسم تلوين واقعي للتاج المصغر فوق الأرقام الكبيرة
+    function drawCrown(x, y, size) {
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.moveTo(x - size, y);
+        ctx.lineTo(x - size, y - size);
+        ctx.lineTo(x - size/2, y - size/2);
+        ctx.lineTo(x, y - size * 1.2);
+        ctx.lineTo(x + size/2, y - size/2);
+        ctx.lineTo(x + size, y - size);
+        ctx.lineTo(x + size, y);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function renderRoyalWheel() {
+        ctx.clearRect(0, 0, 600, 600);
         
+        // 1. رسم الإطار الخارجي المعدني (Chrome Silver 3D Effect)
+        let chromeGrad = ctx.createLinearGradient(0, 0, 600, 600);
+        chromeGrad.addColorStop(0, '#f0f0f0');
+        chromeGrad.addColorStop(0.2, '#7a7a7a');
+        chromeGrad.addColorStop(0.4, '#ffffff');
+        chromeGrad.addColorStop(0.6, '#444444');
+        chromeGrad.addColorStop(0.8, '#ffffff');
+        chromeGrad.addColorStop(1, '#666666');
+        
+        ctx.beginPath();
+        ctx.arc(300, 300, 295, 0, 2 * Math.PI);
+        ctx.fillStyle = chromeGrad;
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.shadowBlur = 0; // ريست للظل
+
+        // 2. إطار داخلي أسود فخم يحمل النقط المضيئة (LED Neon Dots)
+        ctx.beginPath();
+        ctx.arc(300, 300, 275, 0, 2 * Math.PI);
+        ctx.fillStyle = "#090b11";
+        ctx.fill();
+
+        // رسم النقط المضيئة الملونة حول الإطار بالملي
+        for (let i = 0; i < 24; i++) {
+            let dotAngle = (i * (2 * Math.PI)) / 24;
+            let dotX = 300 + 285 * Math.cos(dotAngle);
+            let dotY = 300 + 285 * Math.sin(dotAngle);
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = i % 2 === 0 ? "#ffcc00" : "#00ffcc";
+            ctx.fill();
+        }
+
+        // 3. رسم الأقسام والنصوص والتأثيرات الداخلية
         for (let i = 0; i < numSeg; i++) {
             const angle = i * segAngle;
+            
             ctx.fillStyle = colors[i % colors.length];
             ctx.beginPath();
-            ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 240, angle, angle + segAngle);
+            ctx.moveTo(300, 300);
+            ctx.arc(300, 300, 270, angle, angle + segAngle);
             ctx.fill();
             
-            ctx.strokeStyle = "rgba(255, 204, 0, 0.3)";
-            ctx.lineWidth = 2;
+            // الفواصل الذهبية الـ 3D
+            ctx.strokeStyle = "rgba(255, 215, 0, 0.25)";
+            ctx.lineWidth = 3;
             ctx.stroke();
 
+            // إضاءة داخلية من حواف القسم للداخل ليعطي تأثير تظليل وعمق واقعي
             ctx.save();
-            ctx.translate(250, 250);
+            ctx.translate(300, 300);
             ctx.rotate(angle + segAngle / 2);
+            
+            // تخصيص النصوص والتاج للمبالغ الملكية الكبيرة (1000 و 1500 ليرة)
+            let isGrand = (prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة");
+            
+            if (isGrand) {
+                ctx.fillStyle = "#ffcc00";
+                ctx.font = "shadowBlur 5px; bold 20px Arial";
+                // رسم التاج فوق النص الملكي بالملي
+                drawCrown(210, -18, 7);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 18px Arial";
+            }
+            
             ctx.textAlign = "right";
-            ctx.fillStyle = "#ffffff";
-            if(prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة") ctx.fillStyle = "#ffcc00";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(prizes[i], 215, 6);
+            ctx.fillText(prizes[i], 250, 6);
             ctx.restore();
         }
 
+        // 4. رسم الماسة المركزية الكبرى ثلاثية الأبعاد الفخمة (The Giant Diamond Center)
+        // تدرج شعاعي يعطي بريق الألماس والشفافية العاكسة للضوء
+        let diamondGrad = ctx.createRadialGradient(300, 300, 5, 300, 300, 45);
+        diamondGrad.addColorStop(0, '#ffffff');
+        diamondGrad.addColorStop(0.2, '#e0f7fa');
+        diamondGrad.addColorStop(0.5, '#80deea');
+        diamondGrad.addColorStop(0.8, '#00acc1');
+        diamondGrad.addColorStop(1, '#006064');
+
         ctx.beginPath();
-        ctx.arc(250, 250, 32, 0, 2 * Math.PI);
-        ctx.fillStyle = '#ffcc00';
+        ctx.arc(300, 300, 45, 0, 2 * Math.PI);
+        ctx.fillStyle = diamondGrad;
+        ctx.shadowColor = "rgba(0, 242, 254, 0.6)";
+        ctx.shadowBlur = 15;
         ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // نقش خطوط الألماس المتقاطعة لتبدو ماسة حقيقية هندسية
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 1.5;
+        for (let d = 0; d < 8; d++) {
+            let dAngle = (d * Math.PI) / 4;
+            ctx.beginPath();
+            ctx.moveTo(300, 300);
+            ctx.lineTo(300 + 45 * Math.cos(dAngle), 300 + 45 * Math.sin(dAngle));
+            ctx.stroke();
+        }
+        
+        // حلقة ذهبية تحيط بالماسة الفخمة
+        ctx.beginPath();
+        ctx.arc(300, 300, 45, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#ffcc00';
         ctx.lineWidth = 4;
-        ctx.strokeStyle = '#ffffff';
         ctx.stroke();
     }
 
-    draw();
+    renderRoyalWheel();
 
-    function spin() {
+    function executeSpin() {
         document.getElementById('spinBtn').disabled = true;
 
         const targetIdx = Math.floor(Math.random() * numSeg);
         const targetPrize = prizes[targetIdx];
 
-        const rotations = 6 * 360;
+        // دوران كامل وسريع ومبهج (7 لفات مشوقة بالملي)
+        const rotations = 7 * 360;
         const finalAngleDeg = rotations + (360 - (targetIdx * (360 / numSeg)) - (180 / numSeg));
 
         canvas.style.transform = `rotate(${finalAngleDeg}deg)`;
 
-        let ticksTriggered = 0;
-        const totalTicksEstimated = 48; 
-        let tickDelay = 60;
+        // محاكاة حركة السهم الذهبي وتكتكة الصوت الميكانيكي مع تتابع الأقسام
+        let ticksCount = 0;
+        const maxTicks = 56; 
+        let currentDelay = 50;
 
-        function doTick() {
-            if (ticksTriggered < totalTicksEstimated) {
-                pin.classList.remove('hit');
-                void pin.offsetWidth; 
-                pin.classList.add('hit');
+        function playMechanicalTick() {
+            if (ticksCount < maxTicks) {
+                // تفعيل صدمة وحركة السهم
+                pointerDevice.classList.remove('active-tick');
+                void pointerDevice.offsetWidth; 
+                pointerDevice.classList.add('active-tick');
 
-                sndTick.currentTime = 0;
-                sndTick.play().catch(()=>{});
+                // تشغيل الصوت والـ Haptic
+                tickSound.currentTime = 0;
+                tickSound.play().catch(()=>{});
                 tg.HapticFeedback.impactOccurred('light');
 
-                ticksTriggered++;
-                tickDelay += (ticksTriggered * 4);
-                setTimeout(doTick, tickDelay);
+                ticksCount++;
+                // معادلة إبطاء الميكانيك الفخم التدريجي
+                currentDelay += (ticksCount * 3.5);
+                setTimeout(playMechanicalTick, currentDelay);
             }
         }
         
-        setTimeout(doTick, 150);
+        setTimeout(playMechanicalTick, 100);
 
+        // لحظة الفوز وإطلاق الألعاب النارية الاحتفالية الكبرى
         setTimeout(() => {
-            sndWin.play().catch(()=>{});
+            winSound.play().catch(()=>{});
             tg.HapticFeedback.notificationOccurred('success');
 
-            var duration = 2.5 * 1000;
+            // إطلاق عاصفة من الألعاب النارية والكونفيتي الملون من زوايا الشاشة فوراً
+            var duration = 3 * 1000;
             var end = Date.now() + duration;
 
-            (function frame() {
-                confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0, y: 0.8 } });
-                confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1, y: 0.8 } });
-                if (Date.now() < end) { requestAnimationFrame(frame); }
+            (function animationFrameLoop() {
+                confetti({ particleCount: 6, angle: 60, spread: 60, origin: { x: 0, y: 0.75 } });
+                confetti({ particleCount: 6, angle: 120, spread: 60, origin: { x: 1, y: 0.75 } });
+                if (Date.now() < end) { requestAnimationFrame(animationFrameLoop); }
             }());
 
+            // تسليم الجائزة للبوت وإغلاق الشاشة بأمان
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
                     prize: targetPrize,
@@ -264,9 +351,9 @@
                     amount: parseInt(targetPrize)
                 }));
                 tg.close();
-            }, 2200);
+            }, 2300);
 
-        }, 5000); 
+        }, 6000); // 6 ثوانٍ من الحماس والتشويق الملكي
     }
 </script>
 </body>
