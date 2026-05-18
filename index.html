@@ -14,34 +14,53 @@
             margin: 0;
             padding: 20px;
             direction: rtl;
-            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
         h1 { 
-            font-size: 26px; 
+            font-size: 24px; 
             margin-bottom: 25px; 
             color: #f39c12;
-            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
         }
         .slot-container {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            max-width: 360px;
+            gap: 12px;
+            max-width: 340px;
             margin: 0 auto;
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 15px;
-            border: 3px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            background: #161616;
+            padding: 15px;
+            border-radius: 16px;
+            border: 2px solid #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         .reel-box {
-            background: #222;
-            border: 2px solid #444;
-            border-radius: 10px;
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 12px;
             width: 90px;
-            height: 270px; /* يعرض 3 عناصر بالملّي */
+            height: 270px; /* يعرض 3 عناصر بالملّي (كل عنصر 90px) */
             overflow: hidden;
             position: relative;
+        }
+        /* إضافة خطوط تظليل علوية وسفلية لتعطي عمق ثلاثي الأبعاد لبكرة الدوران */
+        .reel-box::before, .reel-box::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 30px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .reel-box::before {
+            top: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        }
+        .reel-box::after {
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
         }
         .reel {
             display: flex;
@@ -49,99 +68,88 @@
             position: absolute;
             width: 100%;
             top: 0;
-            transition: top 0s cubic-bezier(0.25, 0.1, 0.25, 1);
+            left: 0;
         }
         .symbol {
             height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 40px;
+            font-size: 42px;
             box-sizing: border-box;
-            border-bottom: 1px solid #2d2d2d;
         }
         .btn-spin {
-            background: linear-gradient(180deg, #27ae60, #2ecc71);
-            color: white;
-            border: none;
-            padding: 15px 0;
-            font-size: 20px;
+            background: linear-gradient(180deg, #4a4a4a, #2b2b2b);
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 14px 0;
+            font-size: 18px;
             font-weight: bold;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             margin-top: 30px;
-            width: 85%;
-            max-width: 320px;
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-            transition: all 0.2s ease;
+            width: 90%;
+            max-width: 340px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.15s ease;
         }
         .btn-spin:active {
             transform: scale(0.98);
-            box-shadow: 0 2px 5px rgba(46, 204, 113, 0.4);
+            background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
         }
         .btn-spin:disabled { 
-            background: #555; 
+            background: #222 !important; 
+            color: #555;
+            border-color: #2d2d2d;
             box-shadow: none;
             cursor: not-allowed;
         }
         .result {
             margin-top: 25px;
-            font-size: 22px;
-            color: #e74c3c;
+            font-size: 20px;
+            color: #ff4444;
             font-weight: bold;
             display: none;
-            animation: blink 0.5s infinite alternate;
-        }
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.6; }
         }
     </style>
 </head>
 <body>
 
-    <h1>3×3 Slot Game</h1>
+    <h1>Slot Game 3×3</h1>
 
     <div class="slot-container">
-        <div class="reel-box">
-            <div class="reel" id="reel1"></div>
-        </div>
-        <div class="reel-box">
-            <div class="reel" id="reel2"></div>
-        </div>
-        <div class="reel-box">
-            <div class="reel" id="reel3"></div>
-        </div>
+        <div class="reel-box"><div class="reel" id="reel1"></div></div>
+        <div class="reel-box"><div class="reel" id="reel2"></div></div>
+        <div class="reel-box"><div class="reel" id="reel3"></div></div>
     </div>
 
     <div class="result" id="result-text">❌ خسرت حظاً أوفر</div>
 
-    <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">تدوير 🎰</button>
+    <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">🎰 تدوير</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // الرموز المتاحة
         const pool = ["🍉", "🍓", "🍒", "7️⃣", "⭐", "🍇", "🍋"];
         
-        // المصفوفة الخاسرة المطلوبة بالملّي للتوقف عليها في النهاية
+        // النتيجة الحتمية للخسارة متطابقة مع الصورة اللي بدك ياها بالملّي
         const finalLoseLayout = [
             ["🍉", "7️⃣", "🍒"], // العمود الأول (الوسط 7)
             ["🍓", "⭐", "🍉"], // العمود الثاني (الوسط نجمة)
             ["🍒", "🍉", "🍓"]  // العمود الثالث (الوسط بطيخ)
         ];
 
-        // بناء بكرات طويلة وهمية لتعطي إيحاء الدوران اللانهائي الاحترافي
+        // تعبئة البكرات بشكل ممتد جداً لتوفير مسافة كافية للدوران السريع
         function initReels() {
             for (let i = 1; i <= 3; i++) {
                 const reel = document.getElementById(`reel${i}`);
                 let html = '';
-                // نكرر الرموز بشكل عشوائي 10 مرات لعمل شريط طويل جداً يدور هبوطاً
+                // نكرر الرموز لعمل شريط ممتد من 30 عنصر
                 for (let j = 0; j < 30; j++) {
-                    const randomSymbol = pool[Math.floor(Math.random() * pool.length)];
-                    html += `<div class="symbol">${randomSymbol}</div>`;
+                    const symbol = pool[Math.floor(Math.random() * pool.length)];
+                    html += `<div class="symbol">${symbol}</div>`;
                 }
                 reel.innerHTML = html;
             }
@@ -155,40 +163,40 @@
             btn.disabled = true;
             result.style.display = "none";
 
-            // تدوير كل بكرة بوقت توقف مختلف تدريجياً (تأثير احترافي)
-            spinReel(1, finalLoseLayout[0], 2000);
-            spinReel(2, finalLoseLayout[1], 2600);
-            spinReel(3, finalLoseLayout[2], 3200);
+            // إطلاق الدوران لكل عمود بوقت توقف مختلف تدريجياً لتعطي تأثير الكازينو الحقيقي
+            spinReel(1, finalLoseLayout[0], 2000); // يتوقف بعد ثانيتين
+            spinReel(2, finalLoseLayout[1], 2500); // يتوقف بعد ثانيتين ونصف
+            spinReel(3, finalLoseLayout[2], 3000); // يتوقف بعد 3 ثوانٍ
 
-            // تصفير الحساب وإغلاق الواجهة بعد توقف آخر بكرة
+            // معالجة النتيجة وإغلاق التحدي الصارم بعد وقوف آخر بكرة
             setTimeout(() => {
                 result.style.display = "block";
                 setTimeout(() => {
                     tg.sendData(JSON.stringify({action: "lose_slot_zero"}));
                     tg.close();
-                }, 2000);
-            }, 3300);
+                }, 1800);
+            }, 3100);
         }
 
         function spinReel(reelNum, finalThree, duration) {
             const reel = document.getElementById(`reel${reelNum}`);
             
-            // إعادة البكرة للأعلى بدون أن يلاحظ المستخدم
+            // إعادة تعيين موضع البكرة للأعلى بشكل فوري وبدون أنميشن
             reel.style.transition = 'none';
             reel.style.top = '0px';
             
-            // حقن المصفوفة الخاسرة الحتمية في نهاية شريط الدوران الممتد
             const symbols = reel.children;
-            symbols[27].innerText = finalThree[0]; // العنصر العلوي
-            symbols[28].innerText = finalThree[1]; // العنصر الأوسط
-            symbols[29].innerText = finalThree[2]; // العنصر السفلي
+            // زرع النتيجة الحتمية بدقة في العناصر الثلاثة الأخيرة من شريط الدوران الممتد
+            symbols[27].innerText = finalThree[0]; // السطر العلوي
+            symbols[28].innerText = finalThree[1]; // السطر الأوسط (الأساسي)
+            symbols[29].innerText = finalThree[2]; // السطر السفلي
 
-            // تشغيل تأثير اللف الاحترافي المتباطئ تدريجياً (Ease-Out) بعد أجزاء من الثانية
+            // تشغيل تأثير اللف السينمائي المتباطئ (cubic-bezier)
             setTimeout(() => {
-                reel.style.transition = `top ${duration}ms cubic-bezier(0.1, 0.85, 0.25, 1)`;
-                // التحرك هبوطاً بمقدار مسافة الشريط ليقف على العناصر الثلاثة الأخيرة بالملّي
-                reel.style.top = '-2160px'; 
-            }, 50);
+                reel.style.transition = `top ${duration}ms cubic-bezier(0.1, 0.9, 0.2, 1)`;
+                // التحرك لأسفل بمقدار مسافة الشريط ليقف على النتيجة المثبتة بالملّي
+                reel.style.top = '-2430px'; 
+            }, 20);
         }
     </script>
 </body>
