@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        /* تصميم الخلفية مثل الفيديو تماماً */
         body {
             margin: 0;
             padding: 0;
@@ -20,7 +21,8 @@
             min-height: 100vh;
             overflow: hidden;
         }
-        /* تصميم الحاوية الثري دي مثل الفيديو تماماً */
+
+        /* حاوية العجلة ثري دي وإطار معدني مثل الفيديو */
         .wheel-container {
             position: relative;
             width: 90vw;
@@ -28,12 +30,22 @@
             height: 90vw;
             max-height: 400px;
             margin-bottom: 40px;
-            perspective: 1200px; /* تأثير العمق الثري دي */
+            perspective: 1200px;
+            border-radius: 50%;
+            padding: 10px;
+            /* تأثير الإطار المعدني اللامع بالميلي */
+            background: linear-gradient(145deg, #1e2235 0%, #3a3f58 45%, #1e2235 100%);
+            box-shadow: 
+                0 0 15px rgba(255, 204, 0, 0.4), /* توهج خارجي */
+                inset 0 0 15px rgba(0,0,0,0.8), /* ظل داخلي للعمق */
+                0 25px 50px rgba(0,0,0,0.9); /* ظل خارجي */
+            transform: rotateX(20deg); /* زاوية الميلان الثري دي بالميلي */
         }
-        /* المؤشر الذهبي المدبب من الأعلى */
+
+        /* المؤشر الذهبي المدبب من الأعلى ويهتز بالميلي */
         .pointer {
             position: absolute;
-            top: -20px;
+            top: -25px;
             left: 50%;
             transform: translateX(-50%) rotate(180deg);
             width: 0;
@@ -43,20 +55,35 @@
             border-bottom: 40px solid #ffcc00;
             z-index: 10;
             filter: drop-shadow(0px 6px 8px rgba(0,0,0,0.7));
+            transition: transform 0.1s ease; /* سرعة حركة الاهتزاز بالميلي */
         }
-        /* العجلة الرئيسية وتأثير الميلان 3D */
+
+        /* حركة اهتزاز المؤشر عند كل "تكة" بالميلي */
+        .pointer.tick {
+            transform: translateX(-50%) rotate(180deg) translateY(-5px);
+        }
+
+        /* العجلة الرئيسية وتأثير الميلان بالميلي */
         canvas {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            /* إطار خارجي فخم وتأثير الإضاءة */
-            box-shadow: 
-                0 0 0 10px #1e2235, /* إطار داخلي */
-                0 0 20px 5px #ffcc00, /* توهج ذهبي */
-                0 25px 50px rgba(0,0,0,0.9); /* ظل خارجي */
-            transform: rotateX(20deg); /* زاوية الميلان الثري دي */
-            transition: transform 4s cubic-bezier(0.1, 0.9, 0.1, 1);
+            transition: transform 4s cubic-bezier(0.1, 0.9, 0.1, 1); /* سرعة الدوران */
         }
+
+        /* تأثير الإضاءة الفخم على كل قسم بالميلي */
+        .wheel-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.5) 100%);
+        }
+
+        /* زر التدوير بالميلي */
         .btn-spin {
             background: linear-gradient(180deg, #3a3f58 0%, #1e2235 100%);
             color: white;
@@ -67,14 +94,14 @@
             border-radius: 35px;
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: all 0.2s;
         }
+
         .btn-spin:active {
             transform: translateY(3px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
+
         .btn-spin:disabled {
             background: #2a2d3d;
             border-color: #555;
@@ -82,6 +109,7 @@
             cursor: not-allowed;
             transform: none;
         }
+
         .info-box {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -94,14 +122,16 @@
             font-size: 0.95rem;
             backdrop-filter: blur(10px);
         }
+
         .gold-text { color: #ffcc00; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="wheel-container">
-        <div class="pointer"></div>
+        <div class="pointer" id="pointer"></div>
         <canvas id="wheelCanvas" width="600" height="600"></canvas>
+        <div class="wheel-overlay"></div> /* تأثير الإضاءة */
     </div>
 
     <button class="btn-spin" id="spinBtn" onclick="startSpin()">تدوير العجلة</button>
@@ -125,19 +155,19 @@
     if(mode === 'refs') {
         prizes = ["50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة"];
     } else {
-        prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "75 ليرة", "100 ليرة", "150 ليرة"];
+        prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
     }
 
     // نفس ألوان الفيديو الاحترافية بالميلي
     const colors = ["#2c3e50", "#f39c12", "#16a085", "#d35400", "#8e44ad", "#c0392b", "#27ae60", "#2980b9"];
     const numSegments = prizes.length;
     const anglePerSegment = (2 * Math.PI) / numSegments;
+    let currentRotation = 0;
 
-    // دالة رسم العجلة بالمؤثرات ثنائية وثلاثية الأبعاد لتشبه الفيديو
+    // دالة رسم العجلة بالمؤثرات مثل الفيديو
     function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // رسم الأقسام ثنائية الأبعاد كأساس
         for (let i = 0; i < numSegments; i++) {
             const angle = i * anglePerSegment;
             ctx.fillStyle = colors[i % colors.length];
@@ -146,7 +176,6 @@
             ctx.arc(300, 300, 290, angle, angle + anglePerSegment);
             ctx.fill();
             
-            // إضافة النصوص داخل الأقسام بشكل مائل متناسق
             ctx.save();
             ctx.translate(300, 300);
             ctx.rotate(angle + anglePerSegment / 2);
@@ -157,22 +186,12 @@
             ctx.restore();
         }
 
-        // إضافة تأثير الإضاءة (التدرج) ليصبح الشكل ثري دي فخم مثل الفيديو
-        const gradient = ctx.createRadialGradient(300, 300, 50, 300, 300, 290);
-        gradient.addColorStop(0, "rgba(255, 255, 255, 0.15)");
-        gradient.addColorStop(0.5, "rgba(0, 0, 0, 0)");
-        gradient.addColorStop(1, "rgba(0, 0, 0, 0.4)");
-        ctx.fillStyle = gradient;
+        // الدائرة المركزية الذهبية فخمة
         ctx.beginPath();
-        ctx.arc(300, 300, 290, 0, 2 * Math.PI);
+        ctx.arc(300, 300, 45, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffcc00'; 
         ctx.fill();
-        
-        // الدائرة المركزية الذهبية الفخمة
-        ctx.beginPath();
-        ctx.arc(300, 300, 40, 0, 2 * Math.PI);
-        ctx.fillStyle = '#ffcc00'; // أصفر ذهبي مثل الفيديو تماماً
-        ctx.fill();
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 8;
         ctx.strokeStyle = '#fff';
         ctx.stroke();
     }
@@ -181,40 +200,61 @@
 
     function startSpin() {
         document.getElementById('spinBtn').disabled = true;
+        const pointer = document.getElementById('pointer');
         
-        // تحديد الجائزة عشوائياً (الشفافية والأمان)
         const targetIndex = Math.floor(Math.random() * numSegments);
         const targetPrize = prizes[targetIndex];
         
-        const extraRotations = 5 * 360; 
+        const extraRotations = 7 * 360; 
         const targetAngle = extraRotations + (360 - (targetIndex * (360 / numSegments)) - (180 / numSegments));
         
-        // تطبيق الدوران وتأثير الميلان 3D بالميلي
-        canvas.style.transform = `rotateX(20deg) rotate(${targetAngle}deg)`;
+        canvas.style.transform = `rotate(${targetAngle}deg)`;
         
-        // محاكاة صوت "التكتكة" بالموبايل (Haptic Feedback) مثل الفيديو تماماً
-        let ticks = 0;
-        const tickInterval = setInterval(() => {
-            if(ticks < 25) {
-                tg.HapticFeedback.impactOccurred('light');
-                ticks++;
-            } else {
-                clearInterval(tickInterval);
-            }
-        }, 150);
+        // محاكاة تأثير اهتزاز المؤشر وصوت "التكتكة" بالميلي مثل الفيديو تماماً
+        let totalAngleSpun = 0;
+        const totalDuration = 4000; // مدة الدوران الكلية (4 ثوان)
+        const totalAngle = targetAngle;
+        const segmentAngleDeg = 360 / numSegments;
 
-        // انتهاء الدوران وعرض المفرقعات والنتيجة
+        const tickCheckInterval = setInterval(() => {
+            // محاكاة دقيقة لزاوية المؤشر بناءً على الدوران بالميلي
+            const currentMatrix = getComputedStyle(canvas).transform;
+            let currentAngle = 0;
+            if (currentMatrix !== 'none') {
+                const values = currentMatrix.split('(')[1].split(')')[0].split(',');
+                const a = values[0];
+                const b = values[1];
+                currentAngle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+                if (currentAngle < 0) currentAngle += 360;
+            }
+
+            // إذا مر قسم تحت المؤشر بالميلي
+            if (currentAngle >= (totalAngleSpun + segmentAngleDeg)) {
+                totalAngleSpun += segmentAngleDeg;
+                
+                // حركة اهتزاز المؤشر بالميلي
+                pointer.classList.add('tick');
+                setTimeout(() => pointer.classList.remove('tick'), 100);
+
+                // صوت التكتكة ميكانيكياً بالميلي
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+        }, 10); // فحص مستمر كل 10 ملي ثانية لضمان الدقة
+
+        // انتهاء الدوران وعرض المفرقعات والنتيجة بالميلي
         setTimeout(() => {
+            clearInterval(tickCheckInterval);
             tg.HapticFeedback.notificationOccurred('success');
             
-            // تأثير الكونفيتي (المفرقعات الملونة) الفخم عند الربح بالميلي
+            // تأثير الكونفيتي الفخم بالميلي عند الربح مثل الفيديو
             confetti({
                 particleCount: 200,
-                spread: 90,
+                spread: 100,
                 origin: { y: 0.6 }
             });
 
-            // إرسال النتيجة للبوت وإغلاق الويب آب
+            // إرسال النتيجة للبوت وإغلاق الويب آب بالميلي
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
                     prize: targetPrize,
@@ -224,9 +264,8 @@
                 tg.close();
             }, 2500);
 
-        }, 4000);
+        }, totalDuration);
     }
 </script>
 </body>
 </html>
-    
