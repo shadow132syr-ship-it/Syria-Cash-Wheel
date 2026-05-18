@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>العجلة الملكية الكبرى 3D</title>
+    <title>سوريا كاش - العجلة الملونة الاحترافية</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: radial-gradient(circle at center, #161a26 0%, #07090e 100%);
+            background: radial-gradient(circle at center, #182030 0%, #0a0e14 100%);
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -19,123 +19,157 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        /* حاوية العجلة بمنظور 3D سينمائي فخم ثابت ومتناسق */
-        .stage-3d {
-            perspective: 1400px;
+        /* المسرح لتأثير ثلاثي الأبعاد خفيف ومستقر للمنظور */
+        .stage {
+            perspective: 1000px;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .wheel-wrapper {
             position: relative;
-            width: 90vw;
-            max-width: 390px;
-            height: 90vw;
-            max-width: 390px;
-            /* إمالة خفيفة وذكية لإعطاء مظهر ثلاثي الأبعاد فخم جداً بدون تشويه */
-            transform: rotateX(12deg);
+            width: 86vw;
+            max-width: 350px;
+            height: 86vw;
+            max-width: 350px;
+            transform: rotateX(16deg);
             transform-style: preserve-3d;
+        }
+
+        /* الإطار الخارجي المظلل بدقة دائرية لامعة */
+        .outer-frame {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            padding: 8px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 25%, #787878 50%, #ffffff 75%, #404040 100%);
+            box-shadow: 
+                0 18px 35px rgba(0,0,0,0.65),
+                inset 0 3px 10px rgba(255,255,255,0.7),
+                0 0 20px rgba(255, 235, 59, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inner-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.85);
+            background: #111;
         }
 
         canvas {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            transition: transform 6s cubic-bezier(0.15, 0.85, 0.15, 1);
-            filter: drop-shadow(0 25px 35px rgba(0, 0, 0, 0.75));
+            transform: rotate(0deg);
+            transition: transform 5.5s cubic-bezier(0.15, 0.85, 0.2, 1);
         }
 
-        /* السهم الذهبي الواقعي مع التظليل العميق */
+        /* سهم التثبيت الحقيقي الثقيل مع التظليل واللمعان العالي */
         .premium-pointer {
             position: absolute;
-            top: -15px;
+            top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            width: 38px;
-            height: 48px;
-            background: linear-gradient(185deg, #fff 0%, #ffcc00 40%, #b8860b 80%, #553300 100%);
+            width: 34px;
+            height: 44px;
+            background: linear-gradient(180deg, #ffffff 0%, #ffeb3b 40%, #f57f17 85%, #3e2723 100%);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 30;
-            filter: drop-shadow(0 6px 6px rgba(0,0,0,0.6));
+            z-index: 40;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6));
             transform-origin: 50% 0%;
         }
 
-        @keyframes pointer-hit {
+        @keyframes pointer-vibrate {
             0% { transform: translateX(-50%) rotate(0deg); }
-            50% { transform: translateX(-50%) rotate(-18deg); }
+            50% { transform: translateX(-50%) rotate(-14deg); }
             100% { transform: translateX(-50%) rotate(0deg); }
         }
 
-        .premium-pointer.active-tick {
-            animation: pointer-hit 0.12s ease;
+        .premium-pointer.vibrate {
+            animation: pointer-vibrate 0.11s ease-in-out;
         }
 
-        /* زر ابدأ التدوير الذهبي النيون اللامع */
-        .btn-premium {
-            background: linear-gradient(180deg, #ffe555 0%, #d4af37 50%, #aa7c11 100%);
-            color: #06080c;
-            border: 1px solid #fff;
-            padding: 15px 65px;
-            font-size: 1.25rem;
+        /* زر التدوير الأسطوري الفخم بنقوش ذهبية تليق بـ سوريا كاش */
+        .spin-action-btn {
+            background: linear-gradient(180deg, #fffde7 0%, #ffeb3b 35%, #f57f17 100%);
+            color: #0d121b;
+            border: 1px solid #ffffff;
+            padding: 13px 60px;
+            font-size: 1.2rem;
             font-weight: 900;
-            border-radius: 35px;
+            border-radius: 30px;
             cursor: pointer;
             box-shadow: 
-                0 0 15px rgba(255, 215, 0, 0.4),
-                0 8px 25px rgba(0,0,0,0.5);
-            transition: all 0.2s ease;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+                0 0 15px rgba(255, 235, 59, 0.35),
+                0 6px 18px rgba(0,0,0,0.45);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-shadow: 0 1px 1px rgba(255,255,255,0.4);
         }
 
-        .btn-premium:active {
+        .spin-action-btn:active {
             transform: scale(0.95);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
         }
 
-        .btn-premium:disabled {
-            background: linear-gradient(180deg, #333 0%, #222 100%);
-            color: #666;
-            border-color: #444;
+        .spin-action-btn:disabled {
+            background: linear-gradient(180deg, #2d3545 0%, #1d222c 100%);
+            color: #5c677d;
+            border-color: #252b38;
             box-shadow: none;
             cursor: not-allowed;
         }
 
-        .status-box {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 16px;
-            padding: 12px 25px;
+        .brand-badge {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 235, 59, 0.18);
+            border-radius: 14px;
+            padding: 12px 20px;
             text-align: center;
-            margin-top: 20px;
+            width: 80%;
+            max-width: 300px;
+            margin-top: 25px;
             font-size: 0.85rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.25);
         }
-        .gold-glow { color: #ffcc00; font-weight: bold; text-shadow: 0 0 5px rgba(255,204,0,0.3); }
+        .highlight { color: #ffeb3b; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="stage-3d">
+    <div class="stage">
         <div class="wheel-wrapper">
-            <div class="premium-pointer" id="pointerDevice"></div>
-            <canvas id="premiumCanvas" width="600" height="600"></canvas>
+            <div class="premium-pointer" id="wheelPointer"></div>
+            <div class="outer-frame">
+                <div class="inner-container">
+                    <canvas id="luckyWheelCanvas" width="560" height="560"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <button class="btn-premium" id="spinBtn" onclick="executeSpin()">ابدأ التدوير</button>
+    <button class="spin-action-btn" id="triggerBtn" onclick="runSpinProcess()">ابدأ التدوير</button>
 
-    <div class="status-box">
-        <span class="gold-glow">الوضع الملكي نشط</span><br>
-        انتظرونا... الجوائز تُسجّل مباشرة داخل حسابك بالبوت.
+    <div class="brand-badge">
+        <span class="highlight">الوضع التجريبي نشط</span><br>
+        اللغة التجريبية مخصصة لتجربة العجلة فقط، وليست لعباً حقيقياً.
     </div>
 
-    <audio id="tickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
-    <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></audio>
+    <audio id="tickAudio" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+    <audio id="winAudio" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></audio>
 
 <script>
     const tg = window.Telegram.WebApp;
@@ -144,11 +178,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode') || 'cash';
 
-    const canvas = document.getElementById('premiumCanvas');
+    const canvas = document.getElementById('luckyWheelCanvas');
     const ctx = canvas.getContext('2d');
-    const pointerDevice = document.getElementById('pointerDevice');
-    const tickSound = document.getElementById('tickSound');
-    const winSound = document.getElementById('winSound');
+    const wheelPointer = document.getElementById('wheelPointer');
+    const tickAudio = document.getElementById('tickAudio');
+    const winAudio = document.getElementById('winAudio');
 
     let prizes = [];
     if(mode === 'refs') {
@@ -157,203 +191,176 @@
         prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
     }
 
-    // ألوان داكنة ملكية وخلفية فخمة لتبرز الإضاءة والذهب بالملي
-    const colors = ["#131722", "#1b2030", "#0f121a", "#1b2030", "#131722", "#1b2030", "#0f121a", "#1b2030"];
-    const numSeg = prizes.length;
-    const segAngle = (2 * Math.PI) / numSeg;
+    // الألوان الثمانية المبهجة والناطقة لكل قسم تماماً كما في الفيديو الأصلي بالملي
+    const sectionColors = [
+        "#00bcd4", // السماوي الزاهي (50 ليرة)
+        "#e91e63", // الفوشيا الجذاب (100 ليرة)
+        "#4caf50", // الأخضر الحيوي (200 ليرة)
+        "#ff9800", // البرتقالي الدافئ (350 ليرة)
+        "#9c27b0", // البنفسجي الإمبراطوري (500 ليرة)
+        "#3f51b5", // الأزرق النيلي (750 ليرة)
+        "#ffeb3b", // الأصفر الصافي الملكي (1000 ليرة)
+        "#212121"  // الأسود الفخم الداكن (1500 ليرة)
+    ];
 
-    // دالة رسم تلوين واقعي للتاج المصغر فوق الأرقام الكبيرة
-    function drawCrown(x, y, size) {
-        ctx.fillStyle = "#ffcc00";
+    const totalSegments = prizes.length;
+    const segmentRad = (2 * Math.PI) / totalSegments;
+
+    // دالة هندسية دقيقة لرسم التاج المصغر الاحترافي ثلاثي الأبعاد فوق المبالغ الكبرى
+    function drawRoyalCrown(x, y, scale) {
+        ctx.fillStyle = "#ffeb3b";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x - size, y);
-        ctx.lineTo(x - size, y - size);
-        ctx.lineTo(x - size/2, y - size/2);
-        ctx.lineTo(x, y - size * 1.2);
-        ctx.lineTo(x + size/2, y - size/2);
-        ctx.lineTo(x + size, y - size);
-        ctx.lineTo(x + size, y);
+        ctx.moveTo(x - scale, y);
+        ctx.lineTo(x - scale, y - scale);
+        ctx.lineTo(x - scale/1.8, y - scale/1.8);
+        ctx.lineTo(x, y - scale * 1.3);
+        ctx.lineTo(x + scale/1.8, y - scale/1.8);
+        ctx.lineTo(x + scale, y - scale);
+        ctx.lineTo(x + scale, y);
         ctx.closePath();
         ctx.fill();
-    }
-
-    function renderRoyalWheel() {
-        ctx.clearRect(0, 0, 600, 600);
-        
-        // 1. رسم الإطار الخارجي المعدني (Chrome Silver 3D Effect)
-        let chromeGrad = ctx.createLinearGradient(0, 0, 600, 600);
-        chromeGrad.addColorStop(0, '#f0f0f0');
-        chromeGrad.addColorStop(0.2, '#7a7a7a');
-        chromeGrad.addColorStop(0.4, '#ffffff');
-        chromeGrad.addColorStop(0.6, '#444444');
-        chromeGrad.addColorStop(0.8, '#ffffff');
-        chromeGrad.addColorStop(1, '#666666');
-        
-        ctx.beginPath();
-        ctx.arc(300, 300, 295, 0, 2 * Math.PI);
-        ctx.fillStyle = chromeGrad;
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowBlur = 20;
-        ctx.fill();
-        ctx.shadowBlur = 0; // ريست للظل
-
-        // 2. إطار داخلي أسود فخم يحمل النقط المضيئة (LED Neon Dots)
-        ctx.beginPath();
-        ctx.arc(300, 300, 275, 0, 2 * Math.PI);
-        ctx.fillStyle = "#090b11";
-        ctx.fill();
-
-        // رسم النقط المضيئة الملونة حول الإطار بالملي
-        for (let i = 0; i < 24; i++) {
-            let dotAngle = (i * (2 * Math.PI)) / 24;
-            let dotX = 300 + 285 * Math.cos(dotAngle);
-            let dotY = 300 + 285 * Math.sin(dotAngle);
-            ctx.beginPath();
-            ctx.arc(dotX, dotY, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = i % 2 === 0 ? "#ffcc00" : "#00ffcc";
-            ctx.fill();
-        }
-
-        // 3. رسم الأقسام والنصوص والتأثيرات الداخلية
-        for (let i = 0; i < numSeg; i++) {
-            const angle = i * segAngle;
-            
-            ctx.fillStyle = colors[i % colors.length];
-            ctx.beginPath();
-            ctx.moveTo(300, 300);
-            ctx.arc(300, 300, 270, angle, angle + segAngle);
-            ctx.fill();
-            
-            // الفواصل الذهبية الـ 3D
-            ctx.strokeStyle = "rgba(255, 215, 0, 0.25)";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // إضاءة داخلية من حواف القسم للداخل ليعطي تأثير تظليل وعمق واقعي
-            ctx.save();
-            ctx.translate(300, 300);
-            ctx.rotate(angle + segAngle / 2);
-            
-            // تخصيص النصوص والتاج للمبالغ الملكية الكبيرة (1000 و 1500 ليرة)
-            let isGrand = (prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة");
-            
-            if (isGrand) {
-                ctx.fillStyle = "#ffcc00";
-                ctx.font = "shadowBlur 5px; bold 20px Arial";
-                // رسم التاج فوق النص الملكي بالملي
-                drawCrown(210, -18, 7);
-            } else {
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 18px Arial";
-            }
-            
-            ctx.textAlign = "right";
-            ctx.fillText(prizes[i], 250, 6);
-            ctx.restore();
-        }
-
-        // 4. رسم الماسة المركزية الكبرى ثلاثية الأبعاد الفخمة (The Giant Diamond Center)
-        // تدرج شعاعي يعطي بريق الألماس والشفافية العاكسة للضوء
-        let diamondGrad = ctx.createRadialGradient(300, 300, 5, 300, 300, 45);
-        diamondGrad.addColorStop(0, '#ffffff');
-        diamondGrad.addColorStop(0.2, '#e0f7fa');
-        diamondGrad.addColorStop(0.5, '#80deea');
-        diamondGrad.addColorStop(0.8, '#00acc1');
-        diamondGrad.addColorStop(1, '#006064');
-
-        ctx.beginPath();
-        ctx.arc(300, 300, 45, 0, 2 * Math.PI);
-        ctx.fillStyle = diamondGrad;
-        ctx.shadowColor = "rgba(0, 242, 254, 0.6)";
-        ctx.shadowBlur = 15;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // نقش خطوط الألماس المتقاطعة لتبدو ماسة حقيقية هندسية
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.lineWidth = 1.5;
-        for (let d = 0; d < 8; d++) {
-            let dAngle = (d * Math.PI) / 4;
-            ctx.beginPath();
-            ctx.moveTo(300, 300);
-            ctx.lineTo(300 + 45 * Math.cos(dAngle), 300 + 45 * Math.sin(dAngle));
-            ctx.stroke();
-        }
-        
-        // حلقة ذهبية تحيط بالماسة الفخمة
-        ctx.beginPath();
-        ctx.arc(300, 300, 45, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#ffcc00';
-        ctx.lineWidth = 4;
         ctx.stroke();
     }
 
-    renderRoyalWheel();
+    function buildVisualWheel() {
+        ctx.clearRect(0, 0, 560, 560);
+        
+        // رسم الأقسام الملونة مع إضافة تظليل داخلي خفيف لعمق ميكانيكي ملحوظ
+        for (let i = 0; i < totalSegments; i++) {
+            const angleStart = i * segmentRad;
+            
+            ctx.fillStyle = sectionColors[i % sectionColors.length];
+            ctx.beginPath();
+            ctx.moveTo(280, 280);
+            ctx.arc(280, 280, 272, angleStart, angleStart + segmentRad);
+            ctx.fill();
+            
+            // خطوط الفصل الفضية الرفيعة بين الألوان لزيادة الأناقة
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-    function executeSpin() {
-        document.getElementById('spinBtn').disabled = true;
+            // معالجة وكتابة المبالغ وتدويرها بدقة لتتوسط الأقسام تماماً
+            ctx.save();
+            ctx.translate(280, 280);
+            ctx.rotate(angleStart + segmentRad / 2);
+            ctx.textAlign = "right";
+            
+            // تمييز المبالغ الكبرى (1000 و 1500 ليرة) بالخط العريض والتاج
+            let isVIP = (prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة");
+            if(isVIP) {
+                ctx.fillStyle = "#ffeb3b";
+                ctx.font = "bold 17px Arial";
+                drawRoyalCrown(210, -16, 7.5);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 15px Arial";
+            }
+            
+            ctx.fillText(prizes[i], 252, 5);
+            ctx.restore();
+        }
 
-        const targetIdx = Math.floor(Math.random() * numSeg);
-        const targetPrize = prizes[targetIdx];
+        // رسم النواة المركزية (الماسة الحقيقية المضيئة ببريق وانعكاس بلوري ساحر)
+        let crystalGlow = ctx.createRadialGradient(280, 280, 2, 280, 280, 44);
+        crystalGlow.addColorStop(0, '#ffffff');
+        crystalGlow.addColorStop(0.15, '#e0f7fa');
+        crystalGlow.addColorStop(0.4, '#4dd0e1');
+        crystalGlow.addColorStop(0.75, '#0097a7');
+        crystalGlow.addColorStop(1, '#004d40');
 
-        // دوران كامل وسريع ومبهج (7 لفات مشوقة بالملي)
-        const rotations = 7 * 360;
-        const finalAngleDeg = rotations + (360 - (targetIdx * (360 / numSeg)) - (180 / numSeg));
+        ctx.beginPath();
+        ctx.arc(280, 280, 44, 0, 2 * Math.PI);
+        ctx.fillStyle = crystalGlow;
+        ctx.shadowColor = "rgba(0, 229, 255, 0.55)";
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0; 
 
-        canvas.style.transform = `rotate(${finalAngleDeg}deg)`;
+        // تمليس وجه الماسة بخطوط انعكاس زجاجية متقاطعة تعطي مظهر الماس الأصلي
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+        ctx.lineWidth = 1.2;
+        for (let k = 0; k < 8; k++) {
+            let currentAngle = (k * Math.PI) / 4;
+            ctx.beginPath();
+            ctx.moveTo(280, 280);
+            ctx.lineTo(280 + 44 * Math.cos(currentAngle), 280 + 44 * Math.sin(currentAngle));
+            ctx.stroke();
+        }
 
-        // محاكاة حركة السهم الذهبي وتكتكة الصوت الميكانيكي مع تتابع الأقسام
-        let ticksCount = 0;
-        const maxTicks = 56; 
-        let currentDelay = 50;
+        // الطوق الذهبي اللامع المحيط بالقلب الماسي لتثبيته بدقة
+        ctx.beginPath();
+        ctx.arc(280, 280, 44, 0, 2 * Math.PI);
+        ctx.strokeStyle = "#ffeb3b";
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+    }
 
-        function playMechanicalTick() {
-            if (ticksCount < maxTicks) {
-                // تفعيل صدمة وحركة السهم
-                pointerDevice.classList.remove('active-tick');
-                void pointerDevice.offsetWidth; 
-                pointerDevice.classList.add('active-tick');
+    buildVisualWheel();
 
-                // تشغيل الصوت والـ Haptic
-                tickSound.currentTime = 0;
-                tickSound.play().catch(()=>{});
+    function runSpinProcess() {
+        document.getElementById('triggerBtn').disabled = true;
+
+        const selectedIdx = Math.floor(Math.random() * totalSegments);
+        const selectedPrize = prizes[selectedIdx];
+
+        // 7 دورات كاملة فائقة السرعة تضمن الحماس والتشويق المتناهي
+        const baselineRotations = 7 * 360;
+        const preciseAngle = baselineRotations + (360 - (selectedIdx * (360 / totalSegments)) - (180 / totalSegments));
+
+        canvas.style.transform = `rotate(${preciseAngle}deg)`;
+
+        // تفعيل تكتكة السهم الذهبي الواقعي واهتزازه تدريجياً مع فواصل الأقسام
+        let currentTicks = 0;
+        const expectedTotalTicks = 55; 
+        let dynamicDelay = 45;
+
+        function stepTick() {
+            if (currentTicks < expectedTotalTicks) {
+                wheelPointer.classList.remove('vibrate');
+                void wheelPointer.offsetWidth; // إعادة تهيئة الأنيميشن فوراً
+                wheelPointer.classList.add('vibrate');
+
+                tickAudio.currentTime = 0;
+                tickAudio.play().catch(()=>{});
                 tg.HapticFeedback.impactOccurred('light');
 
-                ticksCount++;
-                // معادلة إبطاء الميكانيك الفخم التدريجي
-                currentDelay += (ticksCount * 3.5);
-                setTimeout(playMechanicalTick, currentDelay);
+                currentTicks++;
+                dynamicDelay += (currentTicks * 3.6); // تتابع التباطؤ الميكانيكي الفخم
+                setTimeout(stepTick, dynamicDelay);
             }
         }
         
-        setTimeout(playMechanicalTick, 100);
+        setTimeout(stepTick, 100);
 
-        // لحظة الفوز وإطلاق الألعاب النارية الاحتفالية الكبرى
+        // لحظة استقرار العجلة، تفعيل النصر وانطلاق تأثير الاحتفال
         setTimeout(() => {
-            winSound.play().catch(()=>{});
+            winAudio.play().catch(()=>{});
             tg.HapticFeedback.notificationOccurred('success');
 
-            // إطلاق عاصفة من الألعاب النارية والكونفيتي الملون من زوايا الشاشة فوراً
-            var duration = 3 * 1000;
-            var end = Date.now() + duration;
+            // إطلاق عاصفة الألعاب النارية والكونفيتي الملون من أطراف الشاشة كما بالفيديو
+            let durationLimit = 2.8 * 1000;
+            let timeDeadline = Date.now() + durationLimit;
 
-            (function animationFrameLoop() {
-                confetti({ particleCount: 6, angle: 60, spread: 60, origin: { x: 0, y: 0.75 } });
-                confetti({ particleCount: 6, angle: 120, spread: 60, origin: { x: 1, y: 0.75 } });
-                if (Date.now() < end) { requestAnimationFrame(animationFrameLoop); }
+            (function triggerConfettiLoop() {
+                confetti({ particleCount: 5, angle: 65, spread: 55, origin: { x: 0, y: 0.78 } });
+                confetti({ particleCount: 5, angle: 115, spread: 55, origin: { x: 1, y: 0.78 } });
+                if (Date.now() < timeDeadline) { requestAnimationFrame(triggerConfettiLoop); }
             }());
 
-            // تسليم الجائزة للبوت وإغلاق الشاشة بأمان
+            // إرسال البيانات النهائية الآمنة للبوت وإغلاق الواجهة
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
-                    prize: targetPrize,
+                    prize: selectedPrize,
                     mode: mode,
-                    amount: parseInt(targetPrize)
+                    amount: parseInt(selectedPrize)
                 }));
                 tg.close();
-            }, 2300);
+            }, 2100);
 
-        }, 6000); // 6 ثوانٍ من الحماس والتشويق الملكي
+        }, 5500); 
     }
 </script>
 </body>
