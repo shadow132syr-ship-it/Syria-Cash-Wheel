@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>العجلة الملكية الفخمة</title>
+    <title>العجلة الملكية الحقيقية 3D</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: radial-gradient(circle at center, #141923 0%, #06080c 100%);
+            background: radial-gradient(circle at center, #131824 0%, #05070a 100%);
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -21,86 +21,80 @@
             overflow: hidden;
         }
 
+        /* حاوية العجلة لضبط تراكيب الصور الفخمة فوق بعضها */
         .wheel-wrapper {
             position: relative;
-            width: 88vw;
-            max-width: 370px;
-            height: 88vw;
-            max-width: 370px;
-            margin-bottom: 25px;
-        }
-
-        /* الإطار المظلل والمرتب باحترافية عاكسة */
-        .outer-border {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            padding: 10px;
-            box-sizing: border-box;
-            background: linear-gradient(135deg, #ffffff 0%, #a1a1a1 30%, #ffffff 50%, #444444 75%, #222222 100%);
-            box-shadow: 
-                0 20px 40px rgba(0,0,0,0.7),
-                inset 0 4px 12px rgba(255,255,255,0.8),
-                0 0 30px rgba(255, 204, 0, 0.25);
+            width: 90vw;
+            max-width: 380px;
+            height: 90vw;
+            max-width: 380px;
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .wheel-container {
-            position: relative;
+        /* 2. الإطار الخارجي المظلل والمرتب جداً (ثابت) */
+        .wheel-border {
+            position: absolute;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            box-shadow: inset 0 0 25px rgba(0,0,0,0.9);
+            z-index: 10;
+            background: url('wheel_border.png') no-repeat center center;
+            background-size: contain;
+            pointer-events: none; /* عشان ما يغطي على كليك زر التدوير إذا كان بالمنتصف */
         }
 
-        canvas {
-            width: 100%;
-            height: 100%;
+        /* 1 & 4 & 5. العجلة الحقيقية الملونة وبمنتصفها الماسة (هي التي تدور) */
+        .wheel-dynamic {
+            width: 86%; /* أصغر قليلاً لتدور داخل الإطار بحجم متناسق */
+            height: 86%;
             border-radius: 50%;
-            transform: rotate(0deg);
-            transition: transform 5.5s cubic-bezier(0.2, 0.85, 0.25, 1);
+            background: url('wheel_bg.png') no-repeat center center;
+            background-size: contain;
+            transition: transform 6s cubic-bezier(0.2, 0.85, 0.2, 1);
+            z-index: 5;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* سهم التثبيت الواقعي الثقيل مع التظليل العميق من الأعلى */
+        /* 3. سهم التثبيت الواقعي الثقيل جداً من الصورة */
         .real-pointer {
             position: absolute;
-            top: -14px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 36px;
-            height: 46px;
-            background: linear-gradient(180deg, #ffffff 0%, #ffcc00 45%, #b8860b 85%, #442200 100%);
-            clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 30;
-            filter: drop-shadow(0 6px 6px rgba(0,0,0,0.65));
+            width: 45px;  /* تحكم بالحجم ليطابق إطارك */
+            height: 55px;
+            background: url('pointer.png') no-repeat center center;
+            background-size: contain;
+            z-index: 25;
             transform-origin: 50% 0%;
         }
 
+        /* أنيميشن التكتكة الميكانيكية للسهم الحقيقي */
         @keyframes pointer-tick {
             0% { transform: translateX(-50%) rotate(0deg); }
-            50% { transform: translateX(-50%) rotate(-16deg); }
+            50% { transform: translateX(-50%) rotate(-15deg); }
             100% { transform: translateX(-50%) rotate(0deg); }
         }
 
-        .real-pointer.hit {
-            animation: pointer-tick 0.13s ease-in-out;
+        .real-pointer.tick-active {
+            animation: pointer-tick 0.12s ease-in-out;
         }
 
+        /* زر ابدأ التدوير الفخم */
         .btn-spin {
             background: linear-gradient(180deg, #ffee77 0%, #ffcc00 40%, #b8860b 100%);
             color: #05070a;
             border: 1px solid #fff;
-            padding: 14px 60px;
-            font-size: 1.2rem;
+            padding: 14px 65px;
+            font-size: 1.25rem;
             font-weight: 900;
-            border-radius: 30px;
+            border-radius: 35px;
             cursor: pointer;
             box-shadow: 
                 0 0 15px rgba(255, 204, 0, 0.35),
-                0 6px 20px rgba(0,0,0,0.4);
+                0 6px 20px rgba(0,0,0,0.5);
             transition: all 0.2s ease;
         }
 
@@ -126,7 +120,6 @@
             max-width: 320px;
             margin-top: 25px;
             font-size: 0.85rem;
-            line-height: 1.4;
         }
         .gold { color: #ffcc00; font-weight: bold; }
     </style>
@@ -134,23 +127,20 @@
 <body>
 
     <div class="wheel-wrapper">
-        <div class="real-pointer" id="pin"></div>
-        <div class="outer-border">
-            <div class="wheel-container">
-                <canvas id="wheel" width="550" height="550"></canvas>
-            </div>
-        </div>
+        <div class="real-pointer" id="pointer"></div>
+        <div class="wheel-border"></div>
+        <div class="wheel-dynamic" id="wheelDisk"></div>
     </div>
 
-    <button class="btn-spin" id="spinBtn" onclick="spin()">ابدأ التدوير</button>
+    <button class="btn-spin" id="spinBtn" onclick="startSpinning()">ابدأ التدوير</button>
 
     <div class="info-box">
         <span class="gold">انتظرونا... الإطلاق الملكي</span><br>
-        العجلة الكبرى لـ {سوريا كاش} بشكلها وتفاصيلها الاحترافية.
+        العجلة الكبرى لـ {سوريا كاش} بأعلى دقة وواقعية 3D.
     </div>
 
     <audio id="sndTick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
-    <audio id="sndWin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></preload>
+    <audio id="sndWin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" preload="auto"></audio>
 
 <script>
     const tg = window.Telegram.WebApp;
@@ -159,163 +149,64 @@
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode') || 'cash';
 
-    const canvas = document.getElementById('wheel');
-    const ctx = canvas.getContext('2d');
-    const pin = document.getElementById('pin');
+    const wheelDisk = document.getElementById('wheelDisk');
+    const pointer = document.getElementById('pointer');
     const sndTick = document.getElementById('sndTick');
     const sndWin = document.getElementById('sndWin');
 
+    // ترتيب الجوائز على صورتك الـ PNG من قمة العجلة ومع اتجاه عقارب الساعة
     let prizes = [];
     if(mode === 'refs') {
         prizes = ["50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة", "50 ليرة"];
     } else {
         prizes = ["50 ليرة", "100 ليرة", "200 ليرة", "350 ليرة", "500 ليرة", "750 ليرة", "1000 ليرة", "1500 ليرة"];
     }
-
-    // 4. المكافآت كل وحدة لون مختلف تماماً عن الثانية (ألوان مبهجة وقوية ومظللة)
-    const segmentColors = [
-        "#1d2636", // 50 ليرة
-        "#d35400", // 100 ليرة
-        "#16a085", // 200 ليرة
-        "#27ae60", // 350 ليرة
-        "#8e44ad", // 500 ليرة
-        "#c0392b", // 750 ليرة
-        "#f39c12", // 1000 ليرة مائل للذهبي
-        "#11141a"  // 1500 ليرة الأسود الملكي الفخم
-    ];
-
+    
     const numSeg = prizes.length;
-    const segAngle = (2 * Math.PI) / numSeg;
 
-    // دالة رسم التاج الصغير بدقة فوق الأرقام الكبرى
-    function drawCrown(x, y, size) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.beginPath();
-        ctx.moveTo(x - size, y);
-        ctx.lineTo(x - size, y - size);
-        ctx.lineTo(x - size/2, y - size/2);
-        ctx.lineTo(x, y - size * 1.3);
-        ctx.lineTo(x + size/2, y - size/2);
-        ctx.lineTo(x + size, y - size);
-        ctx.lineTo(x + size, y);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    function drawWheel() {
-        ctx.clearRect(0, 0, 550, 550);
-        
-        // 1. رسم الأقسام الملونة والمظللة للداخل لإعطاء عمق 3D
-        for (let i = 0; i < numSeg; i++) {
-            const angle = i * segAngle;
-            
-            ctx.fillStyle = segmentColors[i % segmentColors.length];
-            ctx.beginPath();
-            ctx.moveTo(275, 275);
-            ctx.arc(275, 275, 265, angle, angle + segAngle);
-            ctx.fill();
-            
-            // الفواصل الذهبية الرقيقة بين الأقسام الملونة
-            ctx.strokeStyle = "rgba(255, 215, 0, 0.3)";
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
-
-            // كتابة النصوص باحترافية تامة وتوزيع متناسق
-            ctx.save();
-            ctx.translate(275, 275);
-            ctx.rotate(angle + segAngle / 2);
-            ctx.textAlign = "right";
-            
-            let isGrand = (prizes[i] === "1000 ليرة" || prizes[i] === "1500 ليرة");
-            if(isGrand) {
-                ctx.fillStyle = "#ffcc00";
-                ctx.font = "bold 18px Arial";
-                drawCrown(200, -16, 7); // رسم التاج الفخم
-            } else {
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 16px Arial";
-            }
-            
-            ctx.fillText(prizes[i], 245, 6);
-            ctx.restore();
-        }
-
-        // 5. الماسة الحقيقية في منتصف العجلة مع تأثير انعكاسات النور الفخمة
-        let diamondGrad = ctx.createRadialGradient(275, 275, 2, 275, 275, 42);
-        diamondGrad.addColorStop(0, '#ffffff');
-        diamondGrad.addColorStop(0.2, '#e0f7fa');
-        diamondGrad.addColorStop(0.4, '#80deea');
-        diamondGrad.addColorStop(0.7, '#00acc1');
-        diamondGrad.addColorStop(1, '#004d40');
-
-        ctx.beginPath();
-        ctx.arc(275, 275, 42, 0, 2 * Math.PI);
-        ctx.fillStyle = diamondGrad;
-        ctx.shadowColor = "rgba(0, 242, 254, 0.5)";
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur = 0; // إرجاع الإعدادات الافتراضية
-
-        // رسم الأضلاع الهندسية للماس الحقيقي
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
-        ctx.lineWidth = 1.5;
-        for (let d = 0; d < 8; d++) {
-            let dAngle = (d * Math.PI) / 4;
-            ctx.beginPath();
-            ctx.moveTo(275, 275);
-            ctx.lineTo(275 + 42 * Math.cos(dAngle), 275 + 42 * Math.sin(dAngle));
-            ctx.stroke();
-        }
-
-        // إطار ذهبي خارجي يثبت الماسة في المنتصف
-        ctx.beginPath();
-        ctx.arc(275, 275, 42, 0, 2 * Math.PI);
-        ctx.strokeStyle = "#ffcc00";
-        ctx.lineWidth = 3.5;
-        ctx.stroke();
-    }
-
-    drawWheel();
-
-    function spin() {
+    function startSpinning() {
         document.getElementById('spinBtn').disabled = true;
 
+        // اختيار الجائزة عشوائياً
         const targetIdx = Math.floor(Math.random() * numSeg);
         const targetPrize = prizes[targetIdx];
 
-        const rotations = 7 * 360;
+        // حساب زاوية الوقوف الدقيقة لتقف السهم على الجائزة المطلوبة بالملي
+        const rotations = 7 * 360; // 7 لفات كاملة وسريعة للتشويق
         const finalAngleDeg = rotations + (360 - (targetIdx * (360 / numSeg)) - (180 / numSeg));
 
-        canvas.style.transform = `rotate(${finalAngleDeg}deg)`;
+        // تدوير الصورة الحقيقية للقرص
+        wheelDisk.style.transform = `rotate(${finalAngleDeg}deg)`;
 
-        // محاكاة تكتكة سهم التثبيت مع الفواصل
+        // تشغيل صوت التكتكة الميكانيكية واهتزاز السهم الواقعي
         let ticksTriggered = 0;
-        const totalTicksEstimated = 52; 
-        let tickDelay = 55;
+        const totalTicksEstimated = 54; 
+        let tickDelay = 50;
 
         function doTick() {
             if (ticksTriggered < totalTicksEstimated) {
-                pin.classList.remove('hit');
-                void pin.offsetWidth; 
-                pin.classList.add('hit');
+                pointer.classList.remove('tick-active');
+                void pointer.offsetWidth; // ريست للأنيميشن
+                pointer.classList.add('tick-active');
 
                 sndTick.currentTime = 0;
                 sndTick.play().catch(()=>{});
                 tg.HapticFeedback.impactOccurred('light');
 
                 ticksTriggered++;
-                tickDelay += (ticksTriggered * 3.8);
+                tickDelay += (ticksTriggered * 4); // إبطاء تدريجي فخم
                 setTimeout(doTick, tickDelay);
             }
         }
         
-        setTimeout(doTick, 120);
+        setTimeout(doTick, 100);
 
-        // انتهاء الدوران والاحتفال بالكونفيتي
+        // انتهاء الدوران، الاحتفال، وإرسال البيانات للبوت
         setTimeout(() => {
             sndWin.play().catch(()=>{});
             tg.HapticFeedback.notificationOccurred('success');
 
+            // المفرقعات الكبرى
             var duration = 2.5 * 1000;
             var end = Date.now() + duration;
 
@@ -334,9 +225,8 @@
                 tg.close();
             }, 2200);
 
-        }, 5500); 
+        }, 6000); // متناسق مع الـ 6 ثواني بالـ CSS
     }
 </script>
 </body>
 </html>
-                
