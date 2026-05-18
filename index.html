@@ -17,8 +17,18 @@
             user-select: none;
             -webkit-user-select: none;
         }
+        .balance-container {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
+        }
         h1 { 
-            font-size: 24px; 
+            font-size: 22px; 
             margin-bottom: 25px; 
             color: #f39c12;
             text-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
@@ -40,11 +50,10 @@
             border: 2px solid #333;
             border-radius: 12px;
             width: 90px;
-            height: 270px; /* يعرض 3 عناصر بالملّي (كل عنصر 90px) */
+            height: 270px;
             overflow: hidden;
             position: relative;
         }
-        /* إضافة خطوط تظليل علوية وسفلية لتعطي عمق ثلاثي الأبعاد لبكرة الدوران */
         .reel-box::before, .reel-box::after {
             content: '';
             position: absolute;
@@ -54,14 +63,8 @@
             z-index: 2;
             pointer-events: none;
         }
-        .reel-box::before {
-            top: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-        }
-        .reel-box::after {
-            bottom: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-        }
+        .reel-box::before { top: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
+        .reel-box::after { bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
         .reel {
             display: flex;
             flex-direction: column;
@@ -79,9 +82,9 @@
             box-sizing: border-box;
         }
         .btn-spin {
-            background: linear-gradient(180deg, #4a4a4a, #2b2b2b);
-            color: #e0e0e0;
-            border: 1px solid #444;
+            background: linear-gradient(180deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
             padding: 14px 0;
             font-size: 18px;
             font-weight: bold;
@@ -90,17 +93,13 @@
             margin-top: 30px;
             width: 90%;
             max-width: 340px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
             transition: all 0.15s ease;
         }
-        .btn-spin:active {
-            transform: scale(0.98);
-            background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
-        }
+        .btn-spin:active { transform: scale(0.98); }
         .btn-spin:disabled { 
             background: #222 !important; 
             color: #555;
-            border-color: #2d2d2d;
             box-shadow: none;
             cursor: not-allowed;
         }
@@ -115,6 +114,10 @@
 </head>
 <body>
 
+    <div class="balance-container">
+        رصيدك: <span id="user-balance">0</span> ليرة
+    </div>
+
     <h1>Slot Game 3×3</h1>
 
     <div class="slot-container">
@@ -123,30 +126,31 @@
         <div class="reel-box"><div class="reel" id="reel3"></div></div>
     </div>
 
-    <div class="result" id="result-text">❌ خسرت حظاً أوفر</div>
+    <div class="result" id="result-text">❌ خسرت حظاً أوفر (خصم 300 ليرة)</div>
 
-    <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">🎰 تدوير</button>
+    <button class="btn-spin" id="spin-btn" onclick="startSpinPro()">🎰 تدوير (300 ليرة)</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
+        // قراءة الرصيد الفعلي من معلمات الرابط المتصل بالبوت
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentBalance = parseFloat(urlParams.get('balance')) || 0;
+        document.getElementById('user-balance').innerText = currentBalance;
+
         const pool = ["🍉", "🍓", "🍒", "7️⃣", "⭐", "🍇", "🍋"];
-        
-        // النتيجة الحتمية للخسارة متطابقة مع الصورة اللي بدك ياها بالملّي
         const finalLoseLayout = [
-            ["🍉", "7️⃣", "🍒"], // العمود الأول (الوسط 7)
-            ["🍓", "⭐", "🍉"], // العمود الثاني (الوسط نجمة)
-            ["🍒", "🍉", "🍓"]  // العمود الثالث (الوسط بطيخ)
+            ["🍉", "7️⃣", "🍒"], 
+            ["🍓", "⭐", "🍉"], 
+            ["🍒", "🍉", "🍓"]  
         ];
 
-        // تعبئة البكرات بشكل ممتد جداً لتوفير مسافة كافية للدوران السريع
         function initReels() {
             for (let i = 1; i <= 3; i++) {
                 const reel = document.getElementById(`reel${i}`);
                 let html = '';
-                // نكرر الرموز لعمل شريط ممتد من 30 عنصر
                 for (let j = 0; j < 30; j++) {
                     const symbol = pool[Math.floor(Math.random() * pool.length)];
                     html += `<div class="symbol">${symbol}</div>`;
@@ -154,21 +158,31 @@
                 reel.innerHTML = html;
             }
         }
-
         initReels();
 
         function startSpinPro() {
             const btn = document.getElementById('spin-btn');
             const result = document.getElementById('result-text');
+
+            // حماية: التأكد أن رصيد المستخدم يكفي للعب
+            if (currentBalance < 300) {
+                alert("رصيدك غير كافٍ! تحتاج إلى 300 ليرة على الأقل للعب.");
+                return;
+            }
+
             btn.disabled = true;
             result.style.display = "none";
 
-            // إطلاق الدوران لكل عمود بوقت توقف مختلف تدريجياً لتعطي تأثير الكازينو الحقيقي
-            spinReel(1, finalLoseLayout[0], 2000); // يتوقف بعد ثانيتين
-            spinReel(2, finalLoseLayout[1], 2500); // يتوقف بعد ثانيتين ونصف
-            spinReel(3, finalLoseLayout[2], 3000); // يتوقف بعد 3 ثوانٍ
+            // خصم الـ 300 ليرة فوراً بالواجهة أمام عين المستخدم للحماس والواقعية
+            currentBalance -= 300;
+            document.getElementById('user-balance').innerText = currentBalance;
 
-            // معالجة النتيجة وإغلاق التحدي الصارم بعد وقوف آخر بكرة
+            // إطلاق أنيميشن الدوران السلس
+            spinReel(1, finalLoseLayout[0], 2000);
+            spinReel(2, finalLoseLayout[1], 2500);
+            spinReel(3, finalLoseLayout[2], 3000);
+
+            // إنهاء اللعبة وإرسال إشعار الخصم الفعلي للبوت
             setTimeout(() => {
                 result.style.display = "block";
                 setTimeout(() => {
@@ -180,21 +194,16 @@
 
         function spinReel(reelNum, finalThree, duration) {
             const reel = document.getElementById(`reel${reelNum}`);
-            
-            // إعادة تعيين موضع البكرة للأعلى بشكل فوري وبدون أنميشن
             reel.style.transition = 'none';
             reel.style.top = '0px';
             
             const symbols = reel.children;
-            // زرع النتيجة الحتمية بدقة في العناصر الثلاثة الأخيرة من شريط الدوران الممتد
-            symbols[27].innerText = finalThree[0]; // السطر العلوي
-            symbols[28].innerText = finalThree[1]; // السطر الأوسط (الأساسي)
-            symbols[29].innerText = finalThree[2]; // السطر السفلي
+            symbols[27].innerText = finalThree[0]; 
+            symbols[28].innerText = finalThree[1]; 
+            symbols[29].innerText = finalThree[2]; 
 
-            // تشغيل تأثير اللف السينمائي المتباطئ (cubic-bezier)
             setTimeout(() => {
                 reel.style.transition = `top ${duration}ms cubic-bezier(0.1, 0.9, 0.2, 1)`;
-                // التحرك لأسفل بمقدار مسافة الشريط ليقف على النتيجة المثبتة بالملّي
                 reel.style.top = '-2430px'; 
             }, 20);
         }
