@@ -269,7 +269,7 @@
   <h1>🎡 عجلة الحظ الكبرى</h1>
 
   <div class="wheel-wrapper" id="wheelWrapper">
-    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    <canvas id="wheelCanvas"></canvas>
     
     <div class="pointer">
       <svg width="36" height="46" viewBox="0 0 36 46">
@@ -327,22 +327,39 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// العناصر مرتبة تماماً مثل الصورة 시계방향
 const items = [
-  { label:"50 ليرة 💵", color:"#212121" }, 
-  { label:"100 ليرة ⚡", color:"#00bcd4" },
-  { label:"200 ليرة 💰", color:"#4caf50" },
-  { label:"250 ليرة 🌟", color:"#e67e22" },
-  { label:"350 ليرة ✨", color:"#9c27b0" },
-  { label:"500 ليرة 🎁", color:"#e91e63" },
-  { label:"750 ليرة 🚀", color:"#3f51b5" },
-  { label:"1000 ليرة 👑", color:"#ffeb3b" },
-  { label:"1500 ليرة 💎", color:"#673ab7" }
+  { label:"750 ليرة 🚀", color:"#3f51b5" },   // 0
+  { label:"1000 ليرة 👑", color:"#ffeb3b" },  // 1
+  { label:"1500 ليرة 💎", color:"#673ab7" },  // 2
+  { label:"50 ليرة 💵", color:"#212121" },    // 3 -> هاد التارجت المطلوب بالضبط!
+  { label:"100 ليرة ⚡", color:"#00bcd4" },   // 4
+  { label:"200 ليرة 💰", color:"#4caf50" },   // 5
+  { label:"250 ليرة 🌟", color:"#e67e22" },   // 6
+  { label:"350 ليرة ✨", color:"#9c27b0" },   // 7
+  { label:"500 ليرة 🎁", color:"#e91e63" }    // 8
 ];
 
 let angle = 0;
 let spinning = false;
 let soundOn = true;
 let idleAngle = 0;
+
+// ── تهيئة الـ Canvas ليعمل بدقة Ultra HD خارقة عالي الكثافة ──
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const baseSize = 400; // الحجم الافتراضي للرسم داخلياً
+
+function setupHighDPICanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  // نضرب حجم البكسلات الفعلي بنسبة الشاشة لزيادة الحدة عالاخير
+  canvas.width = baseSize * dpr;
+  canvas.height = baseSize * dpr;
+  ctx.scale(dpr, dpr);
+}
+setupHighDPICanvas();
+
+const R = baseSize / 2;
 
 // AUDIO GENERATOR
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -354,25 +371,25 @@ function getAudioCtx() {
 function playTick() {
   if (!soundOn) return;
   try {
-    const ctx = getAudioCtx();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
+    const ctxAud = getAudioCtx();
+    const o = ctxAud.createOscillator(), g = ctxAud.createGain();
+    o.connect(g); g.connect(ctxAud.destination);
     o.frequency.value = 650 + Math.random()*300;
     o.type = 'triangle';
-    g.gain.setValueAtTime(0.15, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
-    o.start(); o.stop(ctx.currentTime+0.06);
+    g.gain.setValueAtTime(0.15, ctxAud.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctxAud.currentTime+0.06);
+    o.start(); o.stop(ctxAud.currentTime+0.06);
   } catch(e){}
 }
 function playWin() {
   if (!soundOn) return;
   try {
-    const ctx = getAudioCtx();
+    const ctxAud = getAudioCtx();
     [523, 659, 784, 1047].forEach((f, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
+      const o = ctxAud.createOscillator(), g = ctxAud.createGain();
+      o.connect(g); g.connect(ctxAud.destination);
       o.frequency.value = f; o.type = 'sine';
-      const t = ctx.currentTime + i * 0.1;
+      const t = ctxAud.currentTime + i * 0.1;
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.2, t + 0.04);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
@@ -391,73 +408,69 @@ for(let i=0;i<100;i++){
   starsEl.appendChild(s);
 }
 
-// CANVAS DRAW WHEEL
-const canvas = document.getElementById('wheelCanvas');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height, R = W/2;
-
 function drawWheel(currentAngle) {
   const n = items.length;
-  const arc = (2*Math.PI)/n;
-  ctx.clearRect(0,0,W,H);
+  const arc = (2 * Math.PI) / n;
+  ctx.clearRect(0, 0, baseSize, baseSize);
 
-  items.forEach((item,i) => {
-    const start = currentAngle + i*arc;
+  items.forEach((item, i) => {
+    const start = currentAngle + i * arc;
     const end   = start + arc;
 
     ctx.beginPath();
-    ctx.moveTo(R,R);
-    ctx.arc(R,R,R-5,start,end);
+    ctx.moveTo(R, R);
+    ctx.arc(R, R, R - 5, start, end);
     ctx.closePath();
     ctx.fillStyle = item.color;
     ctx.fill();
 
-    const grad = ctx.createRadialGradient(R,R,R*0.15,R,R,R-5);
-    grad.addColorStop(0,'rgba(255,255,255,0.12)');
-    grad.addColorStop(1,'rgba(0,0,0,0.22)');
+    const grad = ctx.createRadialGradient(R, R, R * 0.15, R, R, R - 5);
+    grad.addColorStop(0, 'rgba(255,255,255,0.12)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.25)');
     ctx.fillStyle = grad;
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
     ctx.lineWidth = 1.8;
     ctx.stroke();
 
     ctx.save();
-    ctx.translate(R,R);
-    ctx.rotate(start + arc/2);
+    ctx.translate(R, R);
+    ctx.rotate(start + arc / 2);
     ctx.textAlign = 'right';
     ctx.fillStyle = (item.color === '#ffeb3b') ? '#111' : '#fff';
     
-    const fs = Math.min(13, 240/item.label.length);
+    const fs = Math.min(13, 240 / item.label.length);
     ctx.font = `bold ${fs}px Cairo, sans-serif`;
-    ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=3;
-    ctx.fillText(item.label, R-18, 5);
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; 
+    ctx.shadowBlur = 4;
+    ctx.fillText(item.label, R - 18, 5);
     ctx.restore();
   });
 
-  // طوق خارجي
+  // طوق خارجي فخم
   ctx.beginPath();
-  ctx.arc(R,R,R-3,0,2*Math.PI);
+  ctx.arc(R, R, R - 3, 0, 2 * Math.PI);
   ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 4.5;
   ctx.stroke();
 
-  // النقاط المضيئة الأطراف
+  // النقاط المضيئة عالي الدقة بالأطراف
   const n2 = items.length * 2;
-  for(let i=0;i<n2;i++){
-    const a = currentAngle + (i/n2)*2*Math.PI;
-    const x = R + (R-6)*Math.cos(a);
-    const y = R + (R-6)*Math.sin(a);
+  for(let i = 0; i < n2; i++) {
+    const a = currentAngle + (i / n2) * 2 * Math.PI;
+    const x = R + (R - 6) * Math.cos(a);
+    const y = R + (R - 6) * Math.sin(a);
     ctx.beginPath();
-    ctx.arc(x,y,3,0,2*Math.PI);
-    ctx.fillStyle = i%2===0?'#FFD700':'#fff';
+    ctx.arc(x, y, 2.8, 0, 2 * Math.PI);
+    ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#fff';
     ctx.fill();
   }
 }
 
 drawWheel(angle);
 
-// SPIN CONTROL (موجه للـ 50 ليرة دائماً)
+// SPIN CONTROL (الحساب البرمجي الدقيق للوقوف على الـ 50 ليرة بالضبط)
 function spinWheel() {
   if(spinning) return;
   spinning = true;
@@ -467,34 +480,39 @@ function spinWheel() {
   document.getElementById('wheelCanvas').classList.add('spinning');
 
   const n = items.length;
-  const arc = (2*Math.PI)/n;
-  const chosenIndex = 0; // 50 ليرة ثابتة
+  const arc = (2 * Math.PI) / n;
+  
+  // الـ 50 ليرة تقع في الأندكس رقم 3 ضمن المصفوفة الفوق
+  const chosenIndex = 3; 
 
-  const extraSpins = (9 + Math.random()*3) * 2 * Math.PI;
-  const segCenter = chosenIndex * arc + arc/2;
-  const targetAngle = angle + extraSpins + (2*Math.PI - ((angle % (2*Math.PI)) + segCenter + Math.PI/2 - 2*Math.PI) % (2*Math.PI));
+  // عدد لفات كاملة عشوائية سريعة قبل الوقوف
+  const extraSpins = (8 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+  
+  // الزاوية المطلوبة ليكون مركز الخانة رقم 3 تحت السهم العلوي (الذي يقع عند زاوية -90 درجة أو 1.5*PI)
+  const targetAngle = extraSpins + (1.5 * Math.PI) - (chosenIndex * arc) - (arc / 2);
 
-  const startAngle = angle;
+  const startAngle = angle % (2 * Math.PI);
   const totalChange = targetAngle - startAngle;
-  const duration = 5500; 
+  const duration = 6000; // وقت الدوران فخم وبطيء بالنهاية لزيادة الحماس
   const startTime = performance.now();
 
-  let lastTickAngle = angle;
+  let lastTickAngle = startAngle;
 
   function animate(now) {
     const elapsed = now - startTime;
-    const progress = Math.min(elapsed/duration, 1);
+    const progress = Math.min(elapsed / duration, 1);
 
-    const eased = easeOutCubic(progress);
+    const eased = easeOutQuart(progress);
     const newAngle = startAngle + totalChange * eased;
     angle = newAngle;
 
     const speed = Math.abs((newAngle - lastTickAngle));
-    document.getElementById('speedBar').style.width = Math.min(speed*850,100)+'%';
+    document.getElementById('speedBar').style.width = Math.min(speed * 900, 100) + '%';
 
+    // صوت التكة الاحترافية عند اجتياز الفواصل
     const tickAngle = newAngle % arc;
     const prevTickAngle = lastTickAngle % arc;
-    if(tickAngle < prevTickAngle && speed > 0.01) playTick();
+    if(tickAngle < prevTickAngle && speed > 0.005) playTick();
 
     lastTickAngle = newAngle;
     drawWheel(newAngle);
@@ -512,7 +530,8 @@ function spinWheel() {
   requestAnimationFrame(animate);
 }
 
-function easeOutCubic(t) { return 1 - Math.pow(1-t, 4); }
+// معادلة تباطؤ فخمة جداً ودقيقة للوقوف السلس بالملي
+function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
 
 // SHOW RESULT
 function showResult(item) {
@@ -528,7 +547,7 @@ function showResult(item) {
       amount: 50
     }));
     tg.close();
-  }, 2400);
+  }, 2500);
 }
 
 // CONFETTI EFFECT
@@ -558,10 +577,16 @@ document.getElementById('soundToggle').addEventListener('click',()=>{
   document.getElementById('soundToggle').textContent=soundOn?'🔊':'🔇';
 });
 
-// IDLE LOOP
+// نافذة إعادة ضبط الحجم تلقائياً عند تدوير شاشة الموبايل للحفاظ على الدقة الخارقة
+window.addEventListener('resize', () => {
+  setupHighDPICanvas();
+  drawWheel(angle + idleAngle);
+});
+
+// IDLE LOOP الدوران التلقائي الخفيف أثناء الانتظار
 (function idleLoop(){
   if(!spinning){
-    idleAngle += 0.0008;
+    idleAngle += 0.0006;
     drawWheel(angle + idleAngle);
   }
   requestAnimationFrame(idleLoop);
