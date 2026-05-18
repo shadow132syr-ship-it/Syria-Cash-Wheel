@@ -109,24 +109,20 @@
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.9));
   }
 
-  /* ── الدويرة الصفرا البديلة في المنتصف بالملي مع نبض فخم ── */
+  /* ── الدويرة الصفرا النظيفة بدون السهم الأحمر الغبي ── */
   .center-circle {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
-    width: 58px;
-    height: 58px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background: radial-gradient(circle, #FFE043 0%, #FFB000 80%, #CC8000 100%);
+    background: radial-gradient(circle, #FFE552 0%, #FFB700 70%, #D67A00 100%);
     border: 3.5px solid #ffffff;
-    box-shadow: 0 0 20px #FFD700, inset 0 2px 4px rgba(255,255,255,0.6), 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 0 22px #FFD700, inset 0 2px 4px rgba(255,255,255,0.7), 0 4px 10px rgba(0,0,0,0.55);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
     transition: transform 0.15s;
     animation: circle-pulse 1.8s ease-in-out infinite;
   }
@@ -134,8 +130,6 @@
     0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px #FFD700, inset 0 2px 4px rgba(255,255,255,0.6); }
     50% { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 28px #FF8C00, inset 0 2px 4px rgba(255,255,255,0.8); }
   }
-  .center-circle.spinning { animation: spin-btn 0.4s linear infinite; }
-  @keyframes spin-btn { to{transform:translate(-50%,-50%) rotate(360deg)} }
 
   /* ── Controls ── */
   .controls {
@@ -292,7 +286,7 @@
       </svg>
     </div>
     
-    <div class="center-circle" id="centerCircle">🎯</div>
+    <div class="center-circle" id="centerCircle"></div>
   </div>
 
   <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
@@ -471,7 +465,6 @@ function spinWheel() {
 
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('wheelCanvas').classList.add('spinning');
-  document.getElementById('centerCircle').classList.add('spinning');
 
   const n = items.length;
   const arc = (2*Math.PI)/n;
@@ -512,7 +505,6 @@ function spinWheel() {
       angle = newAngle;
       spinning = false;
       document.getElementById('wheelCanvas').classList.remove('spinning');
-      document.getElementById('centerCircle').classList.remove('spinning');
       document.getElementById('speedBar').style.width = '0%';
       showResult(items[chosenIndex]);
     }
